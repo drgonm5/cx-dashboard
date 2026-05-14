@@ -3,648 +3,1288 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CX Dashboard — Pollo Campero USA</title>
+<title>CX Dashboard — Pollo Campero USA (May 2026 WTD)</title>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 <style>
-:root{
-  --brown:#4F2C1D;--orange:#FF8200;--lime:#A8AD00;--yellow:#F7D417;
-  --off:#F8F7F5;--dark:#1E1E1E;--muted:#7A7A72;
-  --green:#2E7D32;--red:#C62828;--green-bg:#E8F5E9;--red-bg:#FFEBEE;
-  --shadow:0 1px 4px rgba(0,0,0,.10);--r:8px;--g:14px;
-}
+:root{--brown:#4F2C1D;--maroon:#5D2A2C;--orange:#FF8200;--lime:#A8AD00;--yellow:#F7D417;--off:#F8F7F5;--dark:#1E1E1E;--muted:#7A7A72;--green:#2E7D32;--red:#C62828;--green-bg:#E8F5E9;--red-bg:#FFEBEE;--shadow:0 1px 4px rgba(0,0,0,.10);--r:8px;--g:14px;}
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-     background:#F0EEEB;color:var(--dark);font-size:14px;line-height:1.5;}
-
-/* ── Header ── */
-.hdr{background:var(--brown);color:#fff;padding:10px 20px;display:flex;
-     align-items:center;gap:14px;flex-wrap:wrap;position:sticky;top:0;
-     z-index:200;box-shadow:0 2px 8px rgba(0,0,0,.3);}
-.hdr-logo{font-size:18px;font-weight:800;letter-spacing:.5px;color:var(--yellow);}
-.hdr-logo span{color:#fff;font-weight:400;}
-.hdr-sub{font-size:12px;color:rgba(255,255,255,.6);}
-.hdr-right{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
-.audience-toggle{display:flex;background:rgba(0,0,0,.25);border-radius:5px;overflow:hidden;}
-.aud-btn{padding:6px 14px;background:none;border:none;color:rgba(255,255,255,.65);
-         font-size:12px;font-weight:600;cursor:pointer;transition:.15s;letter-spacing:.3px;}
-.aud-btn.active{background:var(--orange);color:#fff;}
-.last-update{font-size:11px;color:rgba(255,255,255,.5);}
-.area-select{padding:5px 10px;background:rgba(255,255,255,.12);color:#fff;
-             border:1px solid rgba(255,255,255,.25);border-radius:4px;font-size:12px;
-             cursor:pointer;display:none;}
-.area-select option{background:var(--brown);color:#fff;}
-
-/* ── Layout ── */
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#F0EEEB;color:var(--dark);font-size:14px;line-height:1.5;}
+.hdr{background:var(--brown);color:#fff;padding:10px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;position:sticky;top:0;z-index:200;box-shadow:0 2px 8px rgba(0,0,0,.3);}
+.hdr-title{font-size:16px;font-weight:700;letter-spacing:.4px;flex-shrink:0;color:#fff;}
+.hdr-title span{color:var(--yellow);}
+.filters{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-left:auto;}
+.fg{display:flex;align-items:center;gap:4px;}
+.fg label{font-size:11px;color:rgba(255,255,255,.65);white-space:nowrap;}
+.fg select{padding:5px 8px;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:4px;font-size:12px;cursor:pointer;min-width:80px;}
+.fg select option{background:var(--brown);color:#fff;}
+.tgl{display:flex;background:rgba(0,0,0,.2);border-radius:4px;overflow:hidden;}
+.tgl button{padding:5px 11px;background:none;border:none;color:rgba(255,255,255,.6);font-size:12px;cursor:pointer;transition:.15s;}
+.tgl button.on{background:var(--orange);color:#fff;font-weight:600;}
+.btn-reset{padding:5px 12px;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:4px;font-size:12px;cursor:pointer;}
 .main{padding:var(--g);max-width:1600px;margin:0 auto;}
-
-/* ── KPI Cards ── */
-.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--g);margin-bottom:var(--g);}
-.kc{background:#fff;border-radius:var(--r);padding:16px 18px;box-shadow:var(--shadow);
-    border-top:3px solid #ccc;transition:transform .15s;}
-.kc:hover{transform:translateY(-1px);}
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:var(--g);margin-bottom:var(--g);}
+.kc{background:#fff;border-radius:var(--r);padding:14px 16px;box-shadow:var(--shadow);border-top:3px solid #ccc;}
 .kc.ok{border-top-color:var(--green)}.kc.bad{border-top-color:var(--red)}.kc.na{border-top-color:#ccc;}
-.kc-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;}
-.kc-val{font-size:32px;font-weight:700;line-height:1;margin-bottom:6px;}
+.kc-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px;}
+.kc-val{font-size:28px;font-weight:700;line-height:1;margin-bottom:5px;}
 .kc-val.ok{color:var(--green)}.kc-val.bad{color:var(--red)}.kc-val.na{color:var(--dark);}
-.kc-meta{display:flex;gap:8px;flex-wrap:wrap;font-size:12px;align-items:center;}
-.kc-goal{background:var(--off);border-radius:3px;padding:2px 7px;color:var(--muted);}
-.kc-badge{border-radius:3px;padding:2px 7px;font-weight:600;}
-.kc-badge.pos{background:var(--green-bg);color:var(--green);}
-.kc-badge.neg{background:var(--red-bg);color:var(--red);}
+.kc-meta{display:flex;gap:6px;flex-wrap:wrap;font-size:12px;}
+.kc-goal{background:var(--off);border-radius:3px;padding:2px 6px;color:var(--muted);}
+.kc-ly.pos{color:var(--green);font-weight:600;}.kc-ly.neg{color:var(--red);font-weight:600;}
 .kc-n{color:var(--muted);}
-
-/* ── Trend Charts ── */
-.trend-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--g);margin-bottom:var(--g);}
-.chart-card{background:#fff;border-radius:var(--r);padding:16px 20px;box-shadow:var(--shadow);}
-.chart-title{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;
-             letter-spacing:.6px;margin-bottom:10px;}
-.chart-box{position:relative;height:160px;}
-
-/* ── Tables ── */
-.card{background:#fff;border-radius:var(--r);box-shadow:var(--shadow);margin-bottom:var(--g);overflow:hidden;}
-.card-hdr{padding:14px 20px;border-bottom:1px solid #F0EEEB;display:flex;
-          align-items:center;justify-content:space-between;gap:10px;}
-.card-hdr h3{font-size:13px;font-weight:700;}
-.card-hdr .tag{font-size:11px;background:var(--off);border-radius:3px;
-               padding:2px 8px;color:var(--muted);}
-.tbl-wrap{overflow-x:auto;}
+.trend-wrap{background:#fff;border-radius:var(--r);padding:16px 20px;box-shadow:var(--shadow);margin-bottom:var(--g);}
+.sec-hdr{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+.sec-hdr h3{font-size:13px;font-weight:600;}
+.tag{font-size:11px;background:var(--off);border-radius:3px;padding:2px 7px;color:var(--muted);}
+.trend-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--g);}
+.chart-wrap{display:flex;flex-direction:column;gap:4px;}
+.chart-lbl{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;}
+.chart-box{position:relative;height:170px;}
+.tabs-bar{display:flex;background:#fff;border-radius:var(--r) var(--r) 0 0;box-shadow:var(--shadow);border-bottom:2px solid #E5E3DF;overflow:hidden;}
+.tab-btn{padding:12px 24px;background:none;border:none;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;transition:.15s;border-bottom:3px solid transparent;margin-bottom:-2px;}
+.tab-btn.on{color:var(--orange);border-bottom-color:var(--orange);font-weight:600;}
+.tab-btn:hover:not(.on){background:var(--off);}
+.tab-content{background:#fff;border-radius:0 0 var(--r) var(--r);box-shadow:var(--shadow);padding:16px 20px;display:none;}
+.tab-content.on{display:block;}
+.reg-charts{display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--g);margin-bottom:var(--g);}
+.tab-chart-box{position:relative;}
+.tbl-wrap{overflow-x:auto;margin-top:8px;}
 .dtbl{width:100%;border-collapse:collapse;font-size:13px;}
-.dtbl thead th{text-align:left;padding:9px 12px;border-bottom:2px solid #E5E3DF;
-               font-size:11px;color:var(--muted);text-transform:uppercase;
-               letter-spacing:.4px;cursor:pointer;white-space:nowrap;user-select:none;}
+.dtbl thead th{text-align:left;padding:8px 10px;border-bottom:2px solid #E5E3DF;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;cursor:pointer;user-select:none;white-space:nowrap;}
 .dtbl thead th:hover{color:var(--dark);}
-.dtbl thead th.sorted{color:var(--orange);}
-.dtbl tbody td{padding:9px 12px;border-bottom:1px solid #F0EEEB;vertical-align:middle;}
+.dtbl tbody td{padding:8px 10px;border-bottom:1px solid #F0EEEB;vertical-align:top;}
 .dtbl tbody tr:hover{background:#FAF9F7;}
-.pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;}
+.dtbl tbody tr.clickable{cursor:pointer;}
+.dtbl tbody tr.selected{background:#FFF3E0;}
+.pill{display:inline-block;padding:2px 7px;border-radius:20px;font-size:11px;font-weight:600;}
 .pill.ok{background:var(--green-bg);color:var(--green);}
 .pill.bad{background:var(--red-bg);color:var(--red);}
 .pill.na{background:var(--off);color:var(--muted);}
-.cmp{display:inline-block;padding:1px 5px;border-radius:3px;font-size:11px;font-weight:600;margin-left:4px;}
-.cmp.pos{color:var(--green);background:var(--green-bg);}
-.cmp.neg{color:var(--red);background:var(--red-bg);}
+.cmp-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px;font-size:10px;}
+.cmp{padding:1px 5px;border-radius:3px;font-weight:600;}
+.cmp.pos{color:var(--green);background:var(--green-bg);}.cmp.neg{color:var(--red);background:var(--red-bg);}.cmp.neu{color:var(--muted);background:var(--off);}
+.drill{background:#fff;border-radius:var(--r);box-shadow:0 4px 20px rgba(0,0,0,.15);margin-bottom:16px;overflow:hidden;display:none;border:2px solid var(--orange);}
+.drill.open{display:block;}
+.drill-hdr{background:var(--brown);color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;}
+.drill-title{font-size:16px;font-weight:700;}.drill-meta{font-size:12px;opacity:.7;margin-top:2px;}
+.drill-close{background:rgba(255,255,255,.2);border:none;color:#fff;width:28px;height:28px;border-radius:50%;font-size:16px;cursor:pointer;}
+.drill-kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;padding:14px 20px;border-bottom:1px solid #F0EEEB;}
+.dk{text-align:center;padding:6px;}.dk-val{font-size:20px;font-weight:700;line-height:1;}
+.dk-val.ok{color:var(--green)}.dk-val.bad{color:var(--red)}.dk-val.na{color:var(--dark);}
+.dk-lbl{font-size:10px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.4px;}
+.drill-body{display:grid;grid-template-columns:1.2fr 1fr;gap:0;min-height:360px;}
+.drill-left{padding:16px 20px;border-right:1px solid #F0EEEB;overflow:hidden;}
+.drill-right{padding:16px 20px;overflow-y:auto;max-height:650px;}
+.dtabs{display:flex;gap:0;margin-bottom:12px;border-bottom:2px solid #F0EEEB;flex-wrap:wrap;}
+.dtab-btn{padding:7px 12px;background:none;border:none;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;}
+.dtab-btn.on{color:var(--orange);border-bottom-color:var(--orange);}
+.dtab-c{display:none;}.dtab-c.on{display:block;}
+.cat-row{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
+.cat-lbl{width:140px;font-size:12px;color:#555;flex-shrink:0;display:flex;align-items:center;gap:5px;}
+.cat-icon{font-size:14px;}
+.cat-bg{flex:1;height:10px;background:#E8E4DE;border-radius:5px;overflow:hidden;}
+.cat-bar{height:100%;border-radius:5px;transition:width .4s;}
+.cat-bar.ok{background:var(--green)}.cat-bar.warn{background:#F9A825}.cat-bar.bad{background:var(--red)}
+.cat-val{width:42px;font-size:12px;font-weight:700;text-align:right;flex-shrink:0;}
+.bk-section{margin-bottom:18px;}
+.bk-title{font-size:12px;font-weight:700;color:var(--brown);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;}
+.bk-chart{position:relative;}
+.miss-title{font-size:12px;font-weight:700;color:var(--brown);margin:16px 0 8px;text-transform:uppercase;letter-spacing:.5px;}
+.miss-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:8px 10px;background:var(--red-bg);border-radius:6px;}
+.miss-rank{width:22px;height:22px;background:var(--red);color:#fff;border-radius:50%;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.miss-q{flex:1;font-size:12px;color:#333;line-height:1.4;}
+.miss-score{font-size:13px;font-weight:700;color:var(--red);flex-shrink:0;white-space:nowrap;}
+.miss-score small{font-size:10px;font-weight:400;color:var(--muted);margin-left:4px;}
+.clm-cat-row{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-bottom:1px solid #F0EEEB;}
+.clm-cat-name{flex:1;font-size:12px;font-weight:600;color:var(--dark);}
+.clm-cat-n{font-size:13px;font-weight:700;color:var(--maroon);flex-shrink:0;min-width:28px;text-align:right;}
+.clm-subcats{font-size:11px;color:var(--muted);margin-top:2px;}
+.rev-sec-title{font-size:12px;font-weight:700;color:var(--brown);margin:10px 0 8px;text-transform:uppercase;letter-spacing:.5px;}
+.rev-card{border-radius:7px;padding:10px 13px;margin-bottom:7px;border:1px solid transparent;}
+.rev-pos{background:#F0FFF4;border-color:#B2DFDB;}.rev-neg{background:#FFF3F3;border-color:#FFCDD2;}
+.rev-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;}
+.rev-stars{font-size:12px;}.rev-date{font-size:11px;color:#aaa;}
+.rev-txt{font-size:12px;line-height:1.5;color:#444;}
+.no-data{color:#aaa;font-size:12px;font-style:italic;padding:6px 0;}
+.msdet-wrap{margin-top:12px}
+.msdet-hdr{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#6b7280;padding:6px 0 4px}
+.msdet-cat{font-size:11px;font-weight:700;text-transform:uppercase;color:#92400e;background:#fef3c7;border-radius:4px;padding:3px 8px;margin:10px 0 4px;display:inline-block}
+.msdet-row{display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f3f4f6;gap:8px}
+.msdet-q{font-size:12px;color:#374151;flex:1;line-height:1.35}
+.msdet-s{font-size:12px;font-weight:700;padding:2px 7px;border-radius:12px;white-space:nowrap;min-width:38px;text-align:center}
+.period-note{font-size:10px;color:var(--muted);font-style:italic;margin-bottom:6px;}
+.footer{text-align:center;padding:10px;color:var(--muted);font-size:11px;}
+@media(max-width:1100px){.kpi-row{grid-template-columns:repeat(3,1fr);}.drill-kpis{grid-template-columns:repeat(3,1fr);}.reg-charts{grid-template-columns:1fr 1fr;}}
+@media(max-width:768px){.kpi-row{grid-template-columns:repeat(2,1fr);}.trend-grid,.drill-body,.reg-charts{grid-template-columns:1fr;}.drill-left{border-right:none;border-bottom:1px solid #F0EEEB;}}
 
-/* ── Top/Bottom ── */
-.tb-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--g);margin-bottom:var(--g);}
-.tb-card{background:#fff;border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden;}
-.tb-hdr{padding:12px 16px;border-bottom:1px solid #F0EEEB;}
-.tb-hdr h4{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
-.tb-hdr.top h4{color:var(--green);}
-.tb-hdr.bot h4{color:var(--red);}
-.tb-row{display:flex;align-items:center;gap:10px;padding:10px 16px;
-        border-bottom:1px solid #F0EEEB;}
-.tb-rank{width:24px;height:24px;border-radius:50%;font-size:11px;font-weight:700;
-         display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.tb-rank.top{background:var(--green-bg);color:var(--green);}
-.tb-rank.bot{background:var(--red-bg);color:var(--red);}
-.tb-info{flex:1;}
-.tb-name{font-size:13px;font-weight:600;}
-.tb-area{font-size:11px;color:var(--muted);}
-.tb-score{font-size:18px;font-weight:700;}
-.tb-score.top{color:var(--green);}
-.tb-score.bot{color:var(--red);}
+.ga-card{background:#fff;border-radius:var(--r);padding:12px 16px;box-shadow:var(--shadow);}
+.ga-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;}
+.ga-name{font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.5px;}
+.ga-goal-lbl{font-size:11px;color:#bbb;}
+.ga-bar-wrap{height:6px;background:#f0f0f0;border-radius:3px;margin-bottom:8px;overflow:hidden;}
+.ga-bar{height:100%;border-radius:3px;transition:width .4s;}
+.ga-bar.ga-ok{background:#34a853;}.ga-bar.ga-warn{background:#fbbc04;}.ga-bar.ga-bad{background:#ea4335;}
+.ga-bottom{display:flex;align-items:baseline;gap:8px;}
+.ga-big{font-size:26px;font-weight:800;line-height:1;}
+.ga-big.ga-ok{color:#1e7e34;}.ga-big.ga-warn{color:#b8860b;}.ga-big.ga-bad{color:#c0392b;}
+.ga-denom{font-size:14px;font-weight:400;color:#bbb;}
+.ga-pct-lbl{font-size:12px;color:#aaa;flex:1;}
+.ga-pct{font-size:13px;font-weight:700;}
+.ga-pct.ga-ok{color:#1e7e34;}.ga-pct.ga-warn{color:#b8860b;}.ga-pct.ga-bad{color:#c0392b;}
 
-/* ── Region cards ── */
-.region-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--g);margin-bottom:var(--g);}
-.reg-card{background:#fff;border-radius:var(--r);box-shadow:var(--shadow);padding:16px 18px;
-          border-left:4px solid #ccc;}
-.reg-name{font-size:13px;font-weight:700;margin-bottom:10px;}
-.reg-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
-.reg-kpi{text-align:center;}
-.reg-kpi-val{font-size:18px;font-weight:700;line-height:1;}
-.reg-kpi-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;margin-top:2px;}
-
-/* ── Section headings ── */
-.section-title{font-size:12px;font-weight:700;text-transform:uppercase;
-               letter-spacing:.6px;color:var(--muted);margin-bottom:var(--g);
-               margin-top:4px;padding-left:2px;}
-
-/* ── Loading / Error ── */
-.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;
-         height:60vh;gap:16px;color:var(--muted);}
-.spinner{width:36px;height:36px;border:3px solid #E5E3DF;
-         border-top-color:var(--orange);border-radius:50%;
-         animation:spin .7s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-/* ── Search ── */
-.search-input{padding:6px 10px;border:1px solid #E5E3DF;border-radius:4px;
-              font-size:12px;width:200px;outline:none;}
-.search-input:focus{border-color:var(--orange);}
-
-/* ── Responsive ── */
-@media(max-width:900px){
-  .kpi-row{grid-template-columns:repeat(2,1fr);}
-  .trend-grid{grid-template-columns:1fr;}
-  .region-grid{grid-template-columns:1fr 1fr;}
-  .tb-grid{grid-template-columns:1fr;}
-}
-@media(max-width:600px){
-  .kpi-row{grid-template-columns:1fr 1fr;}
-  .region-grid{grid-template-columns:1fr;}
-}
+.wl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px;padding:8px 0;}
+.wl-card{background:#fff;border:1px solid #e8e8e8;border-radius:12px;padding:20px;cursor:pointer;transition:box-shadow .2s;}
+.wl-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.1);}
+.wl-card-hdr{font-size:16px;font-weight:700;color:#4F2C1D;margin-bottom:10px;}
+.wl-pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+.wl-pill{padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;}
+.wl-pill.ok{background:#e6f4ea;color:#1e7e34;}.wl-pill.bad{background:#fde8e8;color:#c0392b;}.wl-pill.na{background:#f0f0f0;color:#666;}
+.wl-stores{font-size:11px;color:#999;margin-bottom:12px;}
+.wl-btn{background:#FF8200;color:#fff;border:none;border-radius:8px;padding:7px 16px;font-size:13px;font-weight:600;cursor:pointer;}
+.wl-btn:hover{background:#e07400;}
+.wl-detail-hdr{display:flex;align-items:center;gap:16px;margin-bottom:16px;}
+.wl-back{background:none;border:1px solid #ddd;border-radius:8px;padding:6px 14px;font-size:13px;cursor:pointer;color:#555;}
+.wl-back:hover{background:#f5f5f5;}
+.wl-title{font-size:18px;font-weight:700;color:#4F2C1D;}
+.wl-section-hdr{font-size:14px;font-weight:700;color:#4F2C1D;border-bottom:2px solid #FF8200;padding-bottom:4px;margin-bottom:12px;}
+.wl-chart-box{background:#fff;border:1px solid #e8e8e8;border-radius:10px;padding:14px;}
+.wl-chart-lbl{font-size:12px;font-weight:600;color:#666;margin-bottom:8px;}
 </style>
 </head>
 <body>
-
-<!-- Header -->
-<header class="hdr">
-  <div>
-    <div class="hdr-logo">Pollo Campero <span>CX Dashboard</span></div>
-    <div class="hdr-sub" id="hdr-sub">Loading…</div>
-  </div>
-  <div class="hdr-right">
-    <select class="area-select" id="area-select" onchange="renderAreaManager()">
-      <option value="">— Select Area —</option>
-    </select>
-    <div class="audience-toggle">
-      <button class="aud-btn active" onclick="setAudience('exec')">Executive</button>
-      <button class="aud-btn" onclick="setAudience('director')">Director</button>
-      <button class="aud-btn" onclick="setAudience('area')">Area Manager</button>
-    </div>
-    <div class="last-update" id="last-update"></div>
-  </div>
-</header>
-
-<!-- Main -->
-<div class="main" id="main">
-  <div class="loading">
-    <div class="spinner"></div>
-    <div>Loading dashboard data…</div>
+<div class="hdr">
+  <div class="hdr-title"><span>CX</span> Dashboard &mdash; Pollo Campero USA</div>
+  <div class="filters">
+    <div class="fg"><div class="tgl">
+      <button id="btn-ytd" onclick="dash.setMode('ytd')">YTD</button>
+      <button id="btn-monthly" class="on" onclick="dash.setMode('monthly')">Monthly</button>
+      <button id="btn-weekly" onclick="dash.setMode('weekly')">Weekly</button>
+    </div></div>
+    <div class="fg"><label>Period</label><select id="sel-period" onchange="dash.onPeriodChange()"></select></div>
+    <div class="fg"><label>Region</label><select id="sel-region" onchange="dash.onRegionChange()"><option value="">All Regions</option></select></div>
+    <div class="fg"><label>Area</label><select id="sel-area" onchange="dash.onAreaChange()"><option value="">All Areas</option></select></div>
+    <div class="fg"><label>Store</label><select id="sel-store" onchange="dash.onStoreChange()"><option value="">All Stores</option></select></div>
+    <button class="btn-reset" onclick="dash.reset()">Reset</button>
   </div>
 </div>
+<div class="main">
+  <div class="kpi-row" id="kpi-row"></div>
+  <div class="ga-row" id="goal-attain-row" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:var(--g);"></div>
+  <div id="ga-note" style="display:none;font-size:11px;color:#999;margin:-8px 0 8px;text-align:right;">* Rating &amp; MS shown for latest complete month</div>
+  <div class="trend-wrap">
+    <div class="sec-hdr"><h3>Trend</h3><span class="tag" id="trend-tag"></span><span class="tag" id="trend-scope" style="display:none"></span></div>
+    <div class="trend-grid">
+      <div class="chart-wrap"><div class="chart-lbl">OSAT</div><div class="chart-box"><canvas id="ch-osat-t"></canvas></div></div>
+      <div class="chart-wrap"><div class="chart-lbl">Social Media Rating</div><div class="chart-box"><canvas id="ch-rat-t"></canvas></div></div>
+      <div class="chart-wrap"><div class="chart-lbl">Mystery Shopper</div><div class="chart-box"><canvas id="ch-ms-t"></canvas></div></div>
+      <div class="chart-wrap"><div class="chart-lbl">Call Center Claims</div><div class="chart-box"><canvas id="ch-clm-t"></canvas></div></div>
+    </div>
+  </div>
+  <div class="tabs-bar">
+    <button class="tab-btn on" onclick="dash.showTab('region')">By Region</button>
+    <button class="tab-btn"   onclick="dash.showTab('area')">By Area</button>
+    <button class="tab-btn"   onclick="dash.showTab('store')">By Store</button>
+    <button class="tab-btn" onclick="dash.showTab('watchlist')">Clusters</button>
+  </div>
+  <div class="tab-content on" id="tab-region">
+    <div class="reg-charts">
+      <div><div class="chart-lbl" style="margin-bottom:6px">OSAT by Region</div><div class="tab-chart-box" style="height:240px"><canvas id="ch-reg-osat"></canvas></div></div>
+      <div><div class="chart-lbl" style="margin-bottom:6px">Rating by Region</div><div class="tab-chart-box" style="height:240px"><canvas id="ch-reg-rat"></canvas></div></div>
+      <div><div class="chart-lbl" style="margin-bottom:6px">Mystery Shopper by Region</div><div class="tab-chart-box" style="height:240px"><canvas id="ch-reg-ms"></canvas></div></div>
+    </div>
+    <div class="tbl-wrap"><table class="dtbl" id="tbl-region"></table></div>
+  </div>
+  <div class="tab-content" id="tab-area">
+    <div class="reg-charts">
+      <div><div class="chart-lbl" style="margin-bottom:6px">OSAT by Area</div><div class="tab-chart-box" id="area-osat-wrap"><canvas id="ch-area-osat"></canvas></div></div>
+      <div><div class="chart-lbl" style="margin-bottom:6px">Rating by Area</div><div class="tab-chart-box" id="area-rat-wrap"><canvas id="ch-area-rat"></canvas></div></div>
+      <div><div class="chart-lbl" style="margin-bottom:6px">Mystery Shopper by Area</div><div class="tab-chart-box" id="area-ms-wrap"><canvas id="ch-area-ms"></canvas></div></div>
+    </div>
+    <div class="tbl-wrap"><table class="dtbl" id="tbl-area"></table></div>
+  </div>
+  <div class="tab-content" id="tab-store">
+    <div class="drill" id="drill-panel"></div>
+    <div class="tbl-wrap"><table class="dtbl" id="tbl-store"></table></div>
+  </div>
 
+  <div class="tab-content" id="tab-watchlist">
+    <div id="wl-overview"></div>
+    <div id="wl-detail" style="display:none;"></div>
+  </div>
+  <div class="footer">Data through <span id="last-date"></span> &bull; Pollo Campero USA CX Department</div>
+</div>
 <script>
-Chart.register(ChartDataLabels);
+let DATA, G;
 
-// ── State ──────────────────────────────────────────────────────────────────────
-let DATA = null;
-let audience = 'exec';
+const RC = {"Central":"#E65100","Northeast":"#1B5E20","NY/NJ":"#0D47A1","Southeast":"#6A1B9A","West":"#BF360C","Franchise":"#4E342E"};
+const REGION_ORDER = ["Central","Northeast","NY/NJ","Southeast","West","Franchise"];
+const CAT_ICONS = {"Taste":"🍗","Temperature":"🌡️","Cleanliness":"🧹","Friendliness":"😊","Speed":"⚡","Accuracy":"✅","Availability":"📋","Value":"💰","Arrival":"🚪","Service":"🤝","Atmosphere":"🏪","Overall Impr.":"🏆"};
+const MONTHS_LBL = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
-// Region colors
-const RC = {Central:"#E65100",Northeast:"#1B5E20","NY/NJ":"#0D47A1",
-            Southeast:"#6A1B9A",West:"#BF360C",Franchise:"#795548"};
+const F={
+  pct: v=>v==null?"—":v.toFixed(1)+"%",
+  rat: v=>v==null?"—":v.toFixed(1),
+  int: v=>v==null?"—":Math.round(v).toLocaleString(),
+  vs:  (v,p,inv)=>{if(v==null||p==null)return{t:"",c:"neu"};const d=+(v-p).toFixed(inv?0:1);const pos=inv?d<=0:d>=0;return{t:(d>=0?"+":"")+d+(inv?"":"%"),c:pos?"pos":"neg"};}
+};
+function stCls(v,g,inv){if(v==null||g==null)return"na";return inv?(v<=g?"ok":"bad"):(v>=g?"ok":"bad");}
+function pillCls(v,g,inv){return stCls(v,g,inv);}
 
-// ── Load data ──────────────────────────────────────────────────────────────────
-fetch('cx_data.json')
-  .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
-  .then(d => {
-    DATA = d;
-    document.getElementById('last-update').textContent = 'Updated: ' + d.meta.generated;
-    document.getElementById('hdr-sub').textContent =
-      'Week ' + d.meta.last_week + '  ·  ' + d.meta.last_month;
-    populateAreaSelect();
-    render();
-  })
-  .catch(e => {
-    document.getElementById('main').innerHTML =
-      '<div class="loading"><div style="color:#C62828;font-size:16px">⚠ Could not load cx_data.json</div>' +
-      '<div style="color:var(--muted)">Run update.py to generate the data file.</div></div>';
-  });
+const CH={}, dCH={};
 
-// ── Audience ───────────────────────────────────────────────────────────────────
-function setAudience(a) {
-  audience = a;
-  document.querySelectorAll('.aud-btn').forEach((b,i) => {
-    b.classList.toggle('active', ['exec','director','area'][i] === a);
-  });
-  const sel = document.getElementById('area-select');
-  sel.style.display = a === 'area' ? 'block' : 'none';
-  render();
+function goalLine(gv){return{id:"g",beforeDraw(c){const{ctx,scales:{x,y}}=c;if(!y)return;const yp=y.getPixelForValue(gv);ctx.save();ctx.beginPath();ctx.moveTo(x.left,yp);ctx.lineTo(x.right,yp);ctx.strokeStyle="rgba(198,40,40,.45)";ctx.lineWidth=1.5;ctx.setLineDash([5,4]);ctx.stroke();ctx.restore();}};}
+
+function mkLine(id,labels,datasets,yFmt,goal){
+  if(CH[id])CH[id].destroy();
+  const pl=goal!=null?[goalLine(goal)]:[];
+  CH[id]=new Chart(document.getElementById(id),{
+    type:"line",data:{labels,datasets:datasets.map((ds,i)=>({label:ds.label,data:ds.data,
+      borderColor:ds.color||["#FF8200","#A8AD00","#FC4C02","#5D2A2C"][i%4],
+      backgroundColor:ds.dashed?"transparent":((ds.color||"#FF8200")+"22"),
+      borderWidth:ds.dashed?1.5:2,borderDash:ds.dashed?[5,3]:[],
+      fill:!ds.dashed&&datasets.length===1,
+      tension:.3,pointRadius:ds.dashed?2:3,pointHoverRadius:5,spanGaps:true,order:ds.dashed?2:1}))},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:datasets.length>1,position:"top",labels:{usePointStyle:true,padding:10,font:{size:11}}},
+        tooltip:{mode:"index",intersect:false,callbacks:{label:c=>`${c.dataset.label}: ${yFmt(c.parsed.y)}`}},
+        datalabels:{display:false}},
+      scales:{x:{type:"category",grid:{display:false},ticks:{font:{size:10},maxRotation:45}},
+              y:{ticks:{font:{size:10},callback:v=>yFmt(v)},grid:{display:false}}},
+      animation:{duration:200}},plugins:pl});
 }
 
-function render() {
-  if (!DATA) return;
-  if (audience === 'exec')     renderExecutive();
-  else if (audience === 'director') renderDirector();
-  else renderAreaManager();
-}
-
-// ── Helpers ────────────────────────────────────────────────────────────────────
-const G = () => DATA.meta.goals;
-const fmt = (v,d=1) => v == null ? '—' : Number(v).toFixed(d);
-const fmtPct = v => v == null ? '—' : fmt(v) + '%';
-const fmtRating = v => v == null ? '—' : fmt(v,2) + '★';
-const fmtClaims = v => v == null ? '—' : v.toLocaleString();
-
-function kpiColor(kpi, val) {
-  if (val == null) return 'na';
-  const g = G();
-  if (kpi === 'osat') return val >= g.osat ? 'ok' : 'bad';
-  if (kpi === 'rating') return val >= g.rating ? 'ok' : 'bad';
-  if (kpi === 'ms') return val >= g.ms ? 'ok' : 'bad';
-  return 'na';
-}
-
-function kpiDiff(val, goal) {
-  if (val == null || goal == null) return '';
-  const d = (val - goal);
-  const cls = d >= 0 ? 'pos' : 'neg';
-  const sign = d >= 0 ? '+' : '';
-  return `<span class="cmp ${cls}">${sign}${fmt(d)} vs goal</span>`;
-}
-
-function kpiCard(label, val, fmtFn, kpi, goal, n, extra='') {
-  const cls = kpiColor(kpi, val);
-  const gStr = goal != null ? `<span class="kc-goal">Goal: ${fmtFn(goal)}</span>` : '';
-  const nStr = n != null ? `<span class="kc-n">${n.toLocaleString()} responses</span>` : '';
-  return `<div class="kc ${cls}">
-    <div class="kc-lbl">${label}</div>
-    <div class="kc-val ${cls}">${fmtFn(val)}</div>
-    <div class="kc-meta">${gStr}${kpiDiff(val,goal)}${extra}${nStr}</div>
-  </div>`;
-}
-
-function trendChart(canvasId, labels, data, color, isRating=false) {
-  const ctx = document.getElementById(canvasId);
-  if (!ctx) return;
-  new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels,
-      datasets:[{
-        data, borderColor: color, backgroundColor: color+'22',
-        borderWidth: 2, pointRadius: 2, pointHoverRadius: 4,
-        fill: true, tension: .35
-      }]
-    },
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{display:false}, datalabels:{display:false},
-                tooltip:{ callbacks:{ label: ctx => isRating ? fmt(ctx.raw,2)+'★' : fmt(ctx.raw)+'%' }}},
+// mkBar — nData enables "n=xxx" tooltip; hoverBackgroundColor = Campero yellow
+function mkBar(id,labels,datasets,yFmt,container){
+  const target=container||document.getElementById(id);
+  if(!target)return;
+  const store=!!container;
+  if(store){if(dCH[id])dCH[id].destroy();}else{if(CH[id])CH[id].destroy();}
+  const chart=new Chart(target,{
+    type:"bar",
+    data:{labels,datasets:datasets.map((ds,i)=>{
+      const colors=ds.barColors||labels.map((_,j)=>{
+        const v=(ds.data||[])[j];if(v==null)return"#ccc";
+        return ds.gFn?(ds.gFn(v)?"#A5D6A7":"#EF9A9A"):["#FF8200","#A8AD00","#FC4C02","#F7D417","#5D2A2C"][i%5];
+      });
+      return{label:ds.label||"",data:ds.data,nData:ds.nData||null,
+        backgroundColor:colors,hoverBackgroundColor:"#F7D417",
+        borderColor:"transparent",borderRadius:3,borderSkipped:false};
+    })},
+    options:{responsive:true,maintainAspectRatio:false,indexAxis:"y",
+      layout:{padding:{right:55}},
+      plugins:{legend:{display:false},
+        tooltip:{callbacks:{label:c=>{
+          const n=c.dataset.nData?.[c.dataIndex];
+          const base=`${c.dataset.label||""}: ${yFmt(c.parsed.x)}`;
+          return n!=null?`${base}  (n=${Number(n).toLocaleString()})`:base;
+        }}},
+        datalabels:{anchor:"end",align:"end",formatter:v=>v!=null?yFmt(v):"",font:{size:10,weight:"600"},color:"#333",clamp:true,clip:false}},
       scales:{
-        x:{ grid:{display:false}, ticks:{font:{size:9}, maxTicksLimit:6,
-            callback:(v,i,arr)=>{ const l=labels[i]; return l ? l.replace(/\d{4}-/,'') : ''; }}},
-        y:{ grid:{color:'#F0EEEB'}, ticks:{font:{size:9},
-            callback: v => isRating ? fmt(v,1) : Math.round(v)+'%'}}
-      }
-    }
+        x:{beginAtZero:true,grid:{display:true,color:"#F0EEEB"},ticks:{font:{size:10},callback:v=>yFmt(v)}},
+        y:{type:"category",grid:{display:false},ticks:{font:{size:11},autoSkip:false}}},
+      animation:{duration:200}},
+    plugins:[ChartDataLabels]
   });
+  if(store)dCH[id]=chart; else CH[id]=chart;
 }
 
-function buildTrendData(weekMap, monthMap, useMonthly) {
-  if (!DATA) return { labels: [], vals: [] };
-  if (useMonthly) {
-    const months = DATA.meta.all_months || [];
-    return {
-      labels: months,
-      vals:   months.map(m => monthMap ? monthMap[m] : null)
-    };
-  }
-  const weeks = DATA.meta.all_weeks || [];
-  return {
-    labels: weeks,
-    vals:   weeks.map(w => weekMap ? weekMap[w] : null)
-  };
-}
+const SS={};
+function sortBy(tid,col){const s=SS[tid]||{col:null,dir:"desc"};s.dir=(s.col===col&&s.dir==="desc")?"asc":"desc";s.col=col;SS[tid]=s;dash.renderCurrentTab();}
 
-function sortTable(rows, col, asc) {
-  return [...rows].sort((a,b) => {
-    const av = a[col], bv = b[col];
-    if (av == null && bv == null) return 0;
-    if (av == null) return 1;
-    if (bv == null) return -1;
-    return asc ? av - bv : bv - av;
+function aggRows(rows){
+  if(!rows||!rows.length)return null;
+  let rs=0,rv=0,ev=0,cl=0,ss=0,ds=0,rtS=0,msS=0;
+  rows.forEach(r=>{rs+=(r.responses||0);rv+=(r.reviews||0);ev+=(r.evaluations||0);cl+=(r.claims||0);
+    if(r.osat!=null)  ss+=(r.osat/100)*(r.responses||0);
+    if(r.dissat!=null)ds+=(r.dissat/100)*(r.responses||0);
+    if(r.rating!=null)rtS+=r.rating*(r.reviews||0);
+    if(r.ms!=null)    msS+=(r.ms/100)*(r.evaluations||0);
   });
+  return{osat:rs>0?+(ss/rs*100).toFixed(1):null,dissat:rs>0?+(ds/rs*100).toFixed(1):null,
+    rating:rv>0?+(rtS/rv).toFixed(2):null,ms:ev>0?+(msS/ev*100).toFixed(1):null,
+    claims:cl,responses:rs,reviews:rv,evaluations:ev};
 }
 
-function storeRow(sid, info) {
-  const o = info.osat?.ytd, r = info.rating?.ytd,
-        m = info.ms?.ytd,   c = info.claims?.ytd;
-  const oc = kpiColor('osat', o), rc = kpiColor('rating', r), mc = kpiColor('ms', m);
-  return `<tr>
-    <td><b>${info.name}</b><br><span style="font-size:11px;color:var(--muted)">${info.area||''}</span></td>
-    <td>${info.region||'—'}</td>
-    <td><span class="pill ${oc}">${fmtPct(o)}</span></td>
-    <td><span class="pill ${rc}">${fmtRating(r)}</span></td>
-    <td><span class="pill ${mc}">${fmtPct(m)}</span></td>
-    <td>${fmtClaims(c)}</td>
-  </tr>`;
-}
-
-let sortState = { col: null, asc: false };
-
-function makeStoreTable(storeEntries, tableId, showRegion=true) {
-  const headers = ['Store', showRegion ? 'Region' : 'Area', 'OSAT','Rating','Mystery Shopper','Claims'];
-  const ths = headers.map((h,i) => {
-    const key = ['name','region','osat','rating','ms','claims'][i];
-    const sorted = sortState.col === key;
-    return `<th class="${sorted?'sorted':''}" onclick="sortBy('${tableId}','${key}',${showRegion})">${h}${sorted?(sortState.asc?' ↑':' ↓'):''}</th>`;
-  }).join('');
-
-  const rows = storeEntries.map(([sid,info]) => ({
-    sid, info,
-    osat:   info.osat?.ytd,
-    rating: info.rating?.ytd,
-    ms:     info.ms?.ytd,
-    claims: info.claims?.ytd,
-    name:   info.name
+function aggBreakdown(rows,labelKey){
+  const byLabel={};
+  rows.forEach(r=>{
+    const lbl=r[labelKey]||"Other";
+    if(!byLabel[lbl])byLabel[lbl]={sat_sum:0,n:0};
+    const n=r.n||0;
+    byLabel[lbl].sat_sum+=(r.osat!=null?(r.osat/100)*n:0);
+    byLabel[lbl].n+=n;
+  });
+  return Object.entries(byLabel).map(([lbl,{sat_sum,n}])=>({
+    [labelKey]:lbl,osat:n>0?+(sat_sum/n*100).toFixed(1):null,n
   }));
-
-  const sorted = sortState.col ?
-    sortTable(rows, sortState.col, sortState.asc) : rows;
-
-  const tbody = sorted.map(r => storeRow(r.sid, r.info)).join('');
-  return `<div class="tbl-wrap"><table class="dtbl" id="${tableId}">
-    <thead><tr>${ths}</tr></thead>
-    <tbody>${tbody}</tbody>
-  </table></div>`;
 }
 
-let _sortListeners = {};
-function sortBy(tableId, col, showRegion) {
-  if (sortState.col === col) sortState.asc = !sortState.asc;
-  else { sortState.col = col; sortState.asc = false; }
-  render();
-}
+const dash={
+  mode:"monthly",period:DATA.meta.last_month,region:"",area:"",store:"",activeTab:"region",drillStore:null,drillCluster:null,
 
-function populateAreaSelect() {
-  const sel = document.getElementById('area-select');
-  (DATA.meta.all_areas || []).forEach(a => {
-    const opt = document.createElement('option');
-    opt.value = a; opt.textContent = a;
-    sel.appendChild(opt);
-  });
-}
+  init(){this.populateFilters();this.render();document.getElementById("last-date").textContent=DATA.meta.last_month.replace("-"," ");},
 
-// ── Executive View ─────────────────────────────────────────────────────────────
-function renderExecutive() {
-  const n = DATA.national;
-  const g = G();
-  const weeks = DATA.meta.all_weeks || [];
+  setMode(m){
+    this.mode=m;["ytd","monthly","weekly"].forEach(x=>document.getElementById("btn-"+x).classList.toggle("on",x===m));
+    if(m==="ytd")this.period=DATA.meta.last_month.split("-")[0];
+    else if(m==="weekly")this.period=DATA.meta.last_week;
+    else this.period=DATA.meta.last_month;
+    this.populatePeriod();this.render();
+    if(this.drillStore)this.openDrill(this.drillStore,false);
+  },
 
-  // KPI cards
-  const cards = [
-    kpiCard('OSAT (Top 2 Box)', n.osat?.ytd,  fmtPct,   'osat',   g.osat,   n.osat?.n),
-    kpiCard('Rating (Avg ★)',   n.rating?.ytd, fmtRating,'rating', g.rating, n.rating?.n),
-    kpiCard('Mystery Shopper',  n.ms?.ytd,     fmtPct,   'ms',     g.ms,     n.ms?.n),
-    kpiCard('Claims (Atel)',    n.claims?.ytd, fmtClaims,'claims', null,     null,
-            `<span class="kc-n">${(n.claims?.ytd||0).toLocaleString()} total</span>`),
-  ].join('');
+  populateFilters(){this.populatePeriod();
+    const sr=document.getElementById("sel-region");
+    sr.innerHTML='<option value="">All Regions</option>'+DATA.meta.all_regions.map(r=>`<option value="${r}">${r}</option>`).join("");
+    sr.value=this.region;this.refreshArea();this.refreshStore();
+  },
 
-  // Trend data
-  const osatW  = buildTrendData(n.osat?.weeks,   n.osat?.months,   false);
-  const ratingW = buildTrendData(n.rating?.weeks, n.rating?.months, false);
-  const msM    = buildTrendData(null,             n.ms?.months,     true);
-  const claimsW = buildTrendData(n.claims?.weeks, n.claims?.months, false);
+  populatePeriod(){
+    const sp=document.getElementById("sel-period");
+    let items;
+    if(this.mode==="ytd"){items=[...new Set(DATA.monthly_total.map(r=>r.month.split("-")[0]))].sort().reverse();}
+    else if(this.mode==="weekly")items=[...DATA.meta.all_weeks].reverse();
+    else items=[...DATA.meta.all_months].reverse();
+    sp.innerHTML=items.map(p=>`<option value="${p}">${this.fmtPeriod(p)}</option>`).join("");
+    sp.value=this.period;
+  },
 
-  // Top/Bottom stores
-  const top5 = (DATA.top5 || []).map((s,i) => `
-    <div class="tb-row">
-      <div class="tb-rank top">${i+1}</div>
-      <div class="tb-info"><div class="tb-name">${s.name}</div>
-        <div class="tb-area">${s.area||''}</div></div>
-      <div class="tb-score top">${fmtPct(s.osat)}</div>
-    </div>`).join('');
+  fmtPeriod(p){
+    if(this.mode==="ytd")return p+" YTD";
+    if(p.includes("-W"))return p.replace("-W"," W");
+    const[y,m]=p.split("-");return(MONTHS_LBL[+m-1]||m)+" "+y;
+  },
 
-  const bot5 = (DATA.bottom5 || []).slice().reverse().map((s,i) => `
-    <div class="tb-row">
-      <div class="tb-rank bot">${i+1}</div>
-      <div class="tb-info"><div class="tb-name">${s.name}</div>
-        <div class="tb-area">${s.area||''}</div></div>
-      <div class="tb-score bot">${fmtPct(s.osat)}</div>
-    </div>`).join('');
+  refreshArea(){
+    const sa=document.getElementById("sel-area");
+    let areas=DATA.meta.all_areas;
+    if(this.region)areas=DATA.meta.store_meta.filter(s=>s.region===this.region).map(s=>s.area).filter(Boolean);
+    areas=[...new Set(areas)].sort();
+    sa.innerHTML='<option value="">All Areas</option>'+areas.map(a=>`<option value="${a}">${a}</option>`).join("");
+    sa.value=areas.includes(this.area)?this.area:"";this.area=sa.value;
+  },
 
-  document.getElementById('main').innerHTML = `
-    <div class="kpi-row">${cards}</div>
+  refreshStore(){
+    const ss=document.getElementById("sel-store");
+    let stores=DATA.meta.all_stores;
+    if(this.area)stores=DATA.meta.store_meta.filter(s=>s.area===this.area).map(s=>s.store_name);
+    else if(this.region)stores=DATA.meta.store_meta.filter(s=>s.region===this.region).map(s=>s.store_name);
+    stores=[...new Set(stores)].filter(Boolean).sort();
+    ss.innerHTML='<option value="">All Stores</option>'+stores.map(s=>`<option value="${s}">${s}</option>`).join("");
+    ss.value=stores.includes(this.store)?this.store:"";this.store=ss.value;
+  },
 
-    <p class="section-title">13-Week Trends (National)</p>
-    <div class="trend-grid">
-      <div class="chart-card">
-        <div class="chart-title">OSAT — Top 2 Box %</div>
-        <div class="chart-box"><canvas id="tc-osat"></canvas></div>
-      </div>
-      <div class="chart-card">
-        <div class="chart-title">Rating — Avg Stars</div>
-        <div class="chart-box"><canvas id="tc-rating"></canvas></div>
-      </div>
-      <div class="chart-card">
-        <div class="chart-title">Mystery Shopper — Monthly Score %</div>
-        <div class="chart-box"><canvas id="tc-ms"></canvas></div>
-      </div>
-      <div class="chart-card">
-        <div class="chart-title">Claims (Atel) — Count</div>
-        <div class="chart-box"><canvas id="tc-claims"></canvas></div>
-      </div>
-    </div>
+  onPeriodChange(){this.period=document.getElementById("sel-period").value;this.render();if(this.drillStore)this.openDrill(this.drillStore,false);},
+  onRegionChange(){this.region=document.getElementById("sel-region").value;this.area="";this.store="";this.drillStore=null;this.refreshArea();this.refreshStore();this.render();},
+  onAreaChange(){this.area=document.getElementById("sel-area").value;this.store="";this.drillStore=null;this.refreshStore();this.render();},
+  onStoreChange(){this.store=document.getElementById("sel-store").value;this.drillStore=null;this.render();},
+  reset(){this.region="";this.area="";this.store="";this.drillStore=null;this.mode="monthly";this.period=DATA.meta.last_month;["ytd","monthly","weekly"].forEach(x=>document.getElementById("btn-"+x).classList.toggle("on",x==="monthly"));this.populateFilters();this.render();},
 
-    <p class="section-title">Store Rankings — OSAT YTD (min. 30 responses)</p>
-    <div class="tb-grid">
-      <div class="tb-card">
-        <div class="tb-hdr top"><h4>Top 5 Stores</h4></div>
-        ${top5 || '<div style="padding:16px;color:var(--muted)">No data</div>'}
-      </div>
-      <div class="tb-card">
-        <div class="tb-hdr bot"><h4>Bottom 5 Stores</h4></div>
-        ${bot5 || '<div style="padding:16px;color:var(--muted)">No data</div>'}
-      </div>
-    </div>
-  `;
+  periodToMonth(){
+    if(this.mode==="ytd")return DATA.meta.last_month;
+    if(!this.period.includes("-W"))return this.period;
+    const[yr,wn]=this.period.split("-W");return`${yr}-${String(Math.min(12,Math.max(1,Math.round(+wn*12/52)))).padStart(2,"0")}`;
+  },
 
-  // Draw charts
-  const last13 = (arr, vals) => {
-    const n = arr.length;
-    const s = Math.max(0, n-13);
-    return { labels: arr.slice(s), vals: vals.slice(s) };
-  };
+  getLY(p){if(!p)return null;if(this.mode==="ytd")return String(+p-1);if(p.includes("-W")){const[y,w]=p.split("-W");return`${+y-1}-W${w}`;}const[y,m]=p.split("-");return`${+y-1}-${m}`;},
 
-  const o13 = last13(osatW.labels, osatW.vals);
-  trendChart('tc-osat', o13.labels, o13.vals, '#FF8200');
+  getKPIs(period){
+    const p=period||this.period;
+    if(!this.region&&!this.area&&!this.store){
+      if(this.mode==="ytd"){const _cap=p+DATA.meta.last_month.slice(4);return aggRows(DATA.monthly_total.filter(r=>r.month&&r.month.startsWith(p)&&r.month<=_cap));}
+      if(this.mode==="weekly")return DATA.weekly_total.find(r=>r.week===p)||null;
+      return DATA.monthly_total.find(r=>r.month===p)||null;
+    }
+    const m=this.mode==="ytd"?null:this.periodToMonth();
+    return aggRows(DATA.store_monthly.filter(r=>{
+      if(this.mode==="ytd"?!(r.month&&r.month.startsWith(p)&&r.month<=(p+DATA.meta.last_month.slice(4))):r.month!==m)return false;
+      if(this.region&&r.region!==this.region)return false;
+      if(this.area&&r.area!==this.area)return false;
+      if(this.store&&r.store_name!==this.store)return false;
+      return true;
+    }));
+  },
 
-  const r13 = last13(ratingW.labels, ratingW.vals);
-  trendChart('tc-rating', r13.labels, r13.vals, '#4F2C1D', true);
+  getSysKPIs(){
+    const p=this.period;
+    if(this.mode==="ytd"){const _cap=p+DATA.meta.last_month.slice(4);return aggRows(DATA.monthly_total.filter(r=>r.month&&r.month.startsWith(p)&&r.month<=_cap));}
+    if(this.mode==="weekly")return DATA.weekly_total.find(r=>r.week===p)||null;
+    return DATA.monthly_total.find(r=>r.month===p)||null;
+  },
 
-  trendChart('tc-ms', msM.labels, msM.vals, '#A8AD00');
+  render(){this.renderKPIs();this.renderGoalAttainment();this.renderTrends();this.renderCurrentTab();},
 
-  const c13 = last13(claimsW.labels, claimsW.vals);
-  const claimsCtx = document.getElementById('tc-claims');
-  if (claimsCtx) new Chart(claimsCtx, {
-    type: 'bar',
-    data:{ labels: c13.labels, datasets:[{
-      data: c13.vals, backgroundColor:'#FF820055', borderColor:'#FF8200', borderWidth:1
-    }]},
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{display:false}, datalabels:{display:false}},
-      scales:{
-        x:{ grid:{display:false}, ticks:{font:{size:9}, maxTicksLimit:8,
-            callback:(v,i)=>{ const l=c13.labels[i]; return l?l.replace(/\d{4}-/,''):''; }}},
-        y:{ grid:{color:'#F0EEEB'}, ticks:{font:{size:9}}}
+  renderKPIs(){
+    const kpi=this.getKPIs(),ly=this.getKPIs(this.getLY(this.period));
+    if(!kpi){document.getElementById("kpi-row").innerHTML="";return;}
+    const yr=this.period.split("-")[0];
+    const ytdSrc=(this.region||this.area||this.store)?DATA.store_monthly.filter(r=>{if(this.region&&r.region!==this.region)return false;if(this.area&&r.area!==this.area)return false;if(this.store&&r.store_name!==this.store)return false;return true;}):DATA.monthly_total;const ytdClaims=ytdSrc.filter(r=>r.month&&r.month.startsWith(yr)&&r.month<=(yr+DATA.meta.last_month.slice(4))).reduce((s,r)=>s+(r.claims||0),0);
+    const cards=[
+      {lbl:"OSAT",v:F.pct(kpi.osat),raw:kpi.osat,goal:G.osat,n:`${F.int(kpi.responses)} surveys`,ly:F.vs(kpi.osat,ly?.osat,false),inv:false},
+      {lbl:"Dissatisfaction",v:F.pct(kpi.dissat),raw:kpi.dissat,goal:2,n:"% of 1-2★ surveys",ly:F.vs(kpi.dissat,ly?.dissat,true),inv:true,goalLbl:"Goal <2%"},
+      {lbl:"Social Rating",v:F.rat(kpi.rating),raw:kpi.rating,goal:G.rating,n:`${F.int(kpi.reviews)} reviews`,ly:F.vs(kpi.rating,ly?.rating,false),inv:false},
+      {lbl:"Mystery Shopper",v:F.pct(kpi.ms),raw:kpi.ms,goal:G.ms,n:`${F.int(kpi.evaluations)} evals`,ly:F.vs(kpi.ms,ly?.ms,false),inv:false},
+      {lbl:"Call Center Claims",v:F.int(kpi.claims),raw:kpi.claims,goal:null,n:this.mode==="ytd"?"":`YTD: ${F.int(ytdClaims)}`,ly:F.vs(kpi.claims,ly?.claims,true),inv:true},
+    ];
+    document.getElementById("kpi-row").innerHTML=cards.map(c=>{
+      const sc=stCls(c.raw,c.goal,c.inv);
+      return`<div class="kc ${sc}"><div class="kc-lbl">${c.lbl}</div><div class="kc-val ${sc}">${c.v}</div><div class="kc-meta">${c.goal!=null?`<span class="kc-goal">${c.goalLbl||("Goal "+(c.inv?"<":"")+c.goal+(typeof c.raw==="number"&&c.raw<10?"":" %"))}</span>`:""}<span class="kc-ly ${c.ly.c||"neu"}">${c.ly.t||"—"} vs LY</span><span class="kc-n">${c.n}</span></div></div>`;
+    }).join("");
+  },
+
+  getTrendRows(){
+    let src;
+    const useM=this.mode!=="weekly"||this.region||this.area||this.store;
+    if(this.store)src=DATA.store_monthly.filter(r=>r.store_name===this.store);
+    else if(this.area)src=DATA.monthly_area.filter(r=>r.area===this.area);
+    else if(this.region)src=DATA.monthly_region.filter(r=>r.region===this.region);
+    else src=useM?DATA.monthly_total:DATA.weekly_total;
+    if(this.mode==="ytd"){const yr=this.period,rows=src.filter(r=>r.month&&r.month.startsWith(yr));return{rows,labels:rows.map(r=>r.month)};}
+    if(!useM){const allW=[...DATA.meta.all_weeks].sort(),idx=allW.indexOf(this.period),s=Math.max(0,idx-12),ws=allW.slice(s,idx+1),byW={};DATA.weekly_total.forEach(r=>byW[r.week]=r);return{rows:ws.map(w=>byW[w]||{week:w}),labels:ws};}
+    const allM=[...new Set(src.map(r=>r.month).filter(Boolean))].sort(),p=this.mode==="monthly"?this.period:this.periodToMonth(),idx=allM.indexOf(p),s=Math.max(0,idx-12),ms2=allM.slice(s,idx+1),byM={};src.forEach(r=>{if(r.month)byM[r.month]=r;});
+    return{rows:ms2.map(m=>byM[m]||{month:m}),labels:ms2};
+  },
+
+  renderTrends(){
+    const{rows,labels}=this.getTrendRows();
+    const lbl=labels.map(l=>{if(l.includes("-W"))return l.replace("-W"," W");const[y,m]=l.split("-");return(MONTHS_LBL[+m-1]||m)+" "+y;});
+    const useM=this.mode!=="weekly"||this.region||this.area||this.store;
+    let lySrc;
+    if(this.store)lySrc=DATA.store_monthly.filter(r=>r.store_name===this.store);
+    else if(this.area)lySrc=DATA.monthly_area.filter(r=>r.area===this.area);
+    else if(this.region)lySrc=DATA.monthly_region.filter(r=>r.region===this.region);
+    else lySrc=useM?DATA.monthly_total:DATA.weekly_total;
+    const lyMap={};lySrc.forEach(r=>{if(r.month)lyMap[r.month]=r;if(r.week)lyMap[r.week]=r;});
+    function lyKey(l){if(l.includes("-W")){const[y,w]=l.split("-W");return(+y-1)+"-W"+w;}const[y,m]=l.split("-");return(+y-1)+"-"+m;}
+    function lyD(f){return labels.map(l=>{const r=lyMap[lyKey(l)];return r&&r[f]!=null?r[f]:null;});}
+    mkLine("ch-osat-t",lbl,[{label:"OSAT %",data:rows.map(r=>r.osat??null),color:"#FF8200"},{label:"LY",data:lyD("osat"),color:"#c0c0c0",dashed:true}],F.pct,null);
+    mkLine("ch-rat-t", lbl,[{label:"Rating", data:rows.map(r=>r.rating??null),color:"#A8AD00"},{label:"LY",data:lyD("rating"),color:"#c0c0c0",dashed:true}],F.rat,G.rating);
+    mkLine("ch-ms-t",  lbl,[{label:"Myst. Shopper",data:rows.map(r=>r.ms??null),color:"#FC4C02"},{label:"LY",data:lyD("ms"),color:"#c0c0c0",dashed:true}],F.pct,null);
+    mkLine("ch-clm-t", lbl,[{label:"Claims",data:rows.map(r=>r.claims??null),color:"#5D2A2C"},{label:"LY",data:lyD("claims"),color:"#c0c0c0",dashed:true}],F.int,null);
+    document.getElementById("trend-tag").textContent=`Last ${labels.length} ${this.mode==="weekly"?"weeks":"months"}`;
+    const sc=document.getElementById("trend-scope");const scope=this.store||this.area||this.region||"";
+    sc.textContent=scope;sc.style.display=scope?"":"none";
+  },
+
+  showTab(name){
+    this.activeTab=name;this.drillStore=null;
+    document.querySelectorAll(".tab-btn").forEach((b,i)=>b.classList.toggle("on",["region","area","store","watchlist"][i]===name));
+    document.querySelectorAll(".tab-content").forEach(el=>el.classList.remove("on"));
+    document.getElementById("tab-"+name).classList.add("on");
+    this.renderCurrentTab();
+  },
+  renderCurrentTab(){if(this.activeTab==="region")this.renderRegion();else if(this.activeTab==="area")this.renderArea();else if(this.activeTab==="store")this.renderStore();else if(this.activeTab==="watchlist")this.renderWatchList();},
+
+  // ── Region / Area rows — weekly uses DATA.weekly_region / DATA.weekly_area ──
+  getRegionRows(){
+    if(this.mode==="weekly"){
+      let rows=(DATA.weekly_region||[]).filter(r=>r.week===this.period);
+      if(this.region)rows=rows.filter(r=>r.region===this.region);
+      return rows.filter(r=>r.region);
+    }
+    const m=this.periodToMonth();
+    if(this.mode==="ytd"){
+      const yr=this.period;let rows=DATA.monthly_region.filter(r=>r.month&&r.month.startsWith(yr));
+      if(this.region)rows=rows.filter(r=>r.region===this.region);
+      const byR={};rows.forEach(r=>{if(r.region){if(!byR[r.region])byR[r.region]=[];byR[r.region].push(r);}});
+      return Object.entries(byR).map(([reg,rs])=>({...aggRows(rs),region:reg}));
+    }
+    let src=DATA.monthly_region.filter(r=>r.month===this.period);
+    if(this.region)src=src.filter(r=>r.region===this.region);
+    return src.filter(r=>r.region);
+  },
+
+  getLYRegionRows(){
+    const lyP=this.getLY(this.period);if(!lyP)return{};
+    let rows;
+    if(this.mode==="weekly"){
+      rows=(DATA.weekly_region||[]).filter(r=>r.week===lyP);
+    } else if(this.mode==="ytd"){
+      let rs=DATA.monthly_region.filter(r=>r.month&&r.month.startsWith(lyP));
+      if(this.region)rs=rs.filter(r=>r.region===this.region);
+      const byR={};rs.forEach(r=>{if(r.region){if(!byR[r.region])byR[r.region]=[];byR[r.region].push(r);}});
+      rows=Object.entries(byR).map(([reg,rs2])=>({...aggRows(rs2),region:reg}));
+    } else {
+      rows=DATA.monthly_region.filter(r=>r.month===lyP);
+    }
+    const byR={};rows.forEach(r=>byR[r.region]=r);return byR;
+  },
+
+  sortedRegions(rows){
+    const byR={};rows.forEach(r=>byR[r.region]=r);
+    const ordered=REGION_ORDER.filter(r=>byR[r]);
+    const extra=rows.map(r=>r.region).filter(r=>!REGION_ORDER.includes(r)).sort();
+    return[...ordered,...extra];
+  },
+
+  renderRegion(){
+    const rows=this.getRegionRows(),lyByR=this.getLYRegionRows(),sys=this.getSysKPIs();
+    const regions=this.sortedRegions(rows);
+    const byR={};rows.forEach(r=>byR[r.region]=r);
+    mkBar("ch-reg-osat",regions,[{label:"OSAT %",data:regions.map(r=>byR[r]?.osat??null),nData:regions.map(r=>byR[r]?.responses??null),gFn:v=>v>=G.osat}],F.pct);
+    mkBar("ch-reg-rat", regions,[{label:"Rating", data:regions.map(r=>byR[r]?.rating??null),nData:regions.map(r=>byR[r]?.reviews??null),gFn:v=>v>=G.rating}],F.rat);
+    mkBar("ch-reg-ms",  regions,[{label:"MS %",   data:regions.map(r=>byR[r]?.ms??null),  nData:regions.map(r=>byR[r]?.evaluations??null),gFn:v=>v>=G.ms}],F.pct);
+    const st=SS["tbl-region"]||{col:"osat",dir:"desc"};
+    this.renderTable("tbl-region",rows.map(r=>({...r,ly:lyByR[r.region]||{},sys:sys||{}})),[
+      {k:"region",l:"Region",rc:true},
+      {k:"osat",  l:"OSAT",           fmt:F.pct,goal:G.osat,   lyk:"ly.osat",  syk:"sys.osat"},
+      {k:"dissat",l:"Dissatisfaction", fmt:F.pct,goal:2,inv:true,lyk:"ly.dissat",syk:"sys.dissat"},
+      {k:"rating",l:"Rating",          fmt:F.rat,goal:G.rating, lyk:"ly.rating",syk:"sys.rating"},
+      {k:"ms",    l:"Mystery Shopper", fmt:F.pct,goal:G.ms,     lyk:"ly.ms",    syk:"sys.ms"},
+      {k:"claims",l:"Claims",          fmt:F.int,inv:true,       lyk:"ly.claims",syk:"sys.claims"}
+    ],st,"tbl-region");
+  },
+
+  getAreaRows(){
+    if(this.mode==="weekly"){
+      let rows=(DATA.weekly_area||[]).filter(r=>r.week===this.period);
+      if(this.region)rows=rows.filter(r=>r.region===this.region);
+      if(this.area)rows=rows.filter(r=>r.area===this.area);
+      return rows.filter(r=>r.area);
+    }
+    const m=this.periodToMonth();
+    if(this.mode==="ytd"){
+      const yr=this.period;let rows=DATA.monthly_area.filter(r=>r.month&&r.month.startsWith(yr));
+      if(this.region)rows=rows.filter(r=>r.region===this.region);
+      if(this.area)rows=rows.filter(r=>r.area===this.area);
+      const byA={};rows.forEach(r=>{if(r.area){if(!byA[r.area])byA[r.area]={area:r.area,region:r.region,area_manager:r.area_manager,_rows:[]};byA[r.area]._rows.push(r);}});
+      return Object.values(byA).map(x=>({...aggRows(x._rows),area:x.area,region:x.region,area_manager:x.area_manager}));
+    }
+    let src=DATA.monthly_area.filter(r=>r.month===this.period);
+    if(this.region)src=src.filter(r=>r.region===this.region);
+    if(this.area)src=src.filter(r=>r.area===this.area);
+    return src.filter(r=>r.area);
+  },
+
+  getLYAreaRows(){
+    const lyP=this.getLY(this.period);if(!lyP)return{};
+    let rows;
+    if(this.mode==="weekly"){
+      rows=(DATA.weekly_area||[]).filter(r=>r.week===lyP);
+    } else if(this.mode==="ytd"){
+      let rs=DATA.monthly_area.filter(r=>r.month&&r.month.startsWith(lyP));
+      if(this.region)rs=rs.filter(r=>r.region===this.region);
+      if(this.area)rs=rs.filter(r=>r.area===this.area);
+      const byA={};rs.forEach(r=>{if(r.area){if(!byA[r.area])byA[r.area]=[];byA[r.area].push(r);}});
+      rows=Object.entries(byA).map(([a,rs2])=>({...aggRows(rs2),area:a}));
+    } else {
+      const m=lyP.includes("-W")?this.periodToMonth():lyP;
+      rows=DATA.monthly_area.filter(r=>r.month===m);
+    }
+    const byA={};rows.forEach(r=>byA[r.area]=r);return byA;
+  },
+
+  renderArea(){
+    const rows=this.getAreaRows(),lyByA=this.getLYAreaRows(),sys=this.getSysKPIs();
+    const sorted=[...rows].sort((a,b)=>{const ri=REGION_ORDER.indexOf(a.region)-REGION_ORDER.indexOf(b.region);return ri!==0?ri:(a.area||"").localeCompare(b.area||"");});
+    const areas=sorted.map(r=>r.area).filter(Boolean);
+    const byA={};rows.forEach(r=>byA[r.area]=r);
+    const h=Math.max(220,areas.length*34);
+    document.getElementById("area-osat-wrap").style.height=h+"px";
+    document.getElementById("area-rat-wrap").style.height=h+"px";
+    document.getElementById("area-ms-wrap").style.height=h+"px";
+    mkBar("ch-area-osat",areas,[{label:"OSAT %",data:areas.map(a=>byA[a]?.osat??null),nData:areas.map(a=>byA[a]?.responses??null),gFn:v=>v>=G.osat}],F.pct);
+    mkBar("ch-area-rat", areas,[{label:"Rating", data:areas.map(a=>byA[a]?.rating??null),nData:areas.map(a=>byA[a]?.reviews??null),gFn:v=>v>=G.rating}],F.rat);
+    mkBar("ch-area-ms",  areas,[{label:"MS %",   data:areas.map(a=>byA[a]?.ms??null),  nData:areas.map(a=>byA[a]?.evaluations??null),gFn:v=>v>=G.ms}],F.pct);
+    const st=SS["tbl-area"]||{col:"osat",dir:"desc"};
+    this.renderTable("tbl-area",rows.map(r=>({...r,ly:lyByA[r.area]||{},sys:sys||{}})),[
+      {k:"region",l:"Region",rc:true},{k:"area",l:"Area"},{k:"area_manager",l:"Area Manager"},
+      {k:"osat",  l:"OSAT",           fmt:F.pct,goal:G.osat,   lyk:"ly.osat",  syk:"sys.osat"},
+      {k:"dissat",l:"Dissatisfaction", fmt:F.pct,goal:2,inv:true,lyk:"ly.dissat",syk:"sys.dissat"},
+      {k:"rating",l:"Rating",          fmt:F.rat,goal:G.rating, lyk:"ly.rating",syk:"sys.rating"},
+      {k:"ms",    l:"Mystery Shopper", fmt:F.pct,goal:G.ms,     lyk:"ly.ms",    syk:"sys.ms"},
+      {k:"claims",l:"Claims",          fmt:F.int,inv:true,       lyk:"ly.claims",syk:"sys.claims"}
+    ],st,"tbl-area");
+  },
+
+  getStoreRows(){
+    const m=this.periodToMonth();
+    if(this.mode==="ytd"){const yr=this.period;let rows=DATA.store_monthly.filter(r=>r.month&&r.month.startsWith(yr));if(this.region)rows=rows.filter(r=>r.region===this.region);if(this.area)rows=rows.filter(r=>r.area===this.area);if(this.store)rows=rows.filter(r=>r.store_name===this.store);const byS={};rows.forEach(r=>{if(r.store_name){if(!byS[r.store_name])byS[r.store_name]={store_name:r.store_name,region:r.region,area:r.area,area_manager:r.area_manager,_rows:[]};byS[r.store_name]._rows.push(r);}});return Object.values(byS).map(x=>({...aggRows(x._rows),store_name:x.store_name,region:x.region,area:x.area,area_manager:x.area_manager}));}
+    let src=DATA.store_monthly.filter(r=>r.month===(this.mode==="monthly"?this.period:m));
+    if(this.region)src=src.filter(r=>r.region===this.region);
+    if(this.area)src=src.filter(r=>r.area===this.area);
+    if(this.store)src=src.filter(r=>r.store_name===this.store);
+    return src.filter(r=>r.store_name);
+  },
+
+  getLYStoreRows(){
+    const lyP=this.getLY(this.period);if(!lyP)return{};
+    let rows;
+    if(this.mode==="ytd"){let rs=DATA.store_monthly.filter(r=>r.month&&r.month.startsWith(lyP));if(this.region)rs=rs.filter(r=>r.region===this.region);if(this.area)rs=rs.filter(r=>r.area===this.area);if(this.store)rs=rs.filter(r=>r.store_name===this.store);const byS={};rs.forEach(r=>{if(r.store_name){if(!byS[r.store_name])byS[r.store_name]=[];byS[r.store_name].push(r);}});rows=Object.entries(byS).map(([s,rs2])=>({...aggRows(rs2),store_name:s}));}
+    else{const m=lyP.includes("-W")?this.periodToMonth():lyP;rows=DATA.store_monthly.filter(r=>r.month===m);}
+    const byS={};rows.forEach(r=>byS[r.store_name]=r);return byS;
+  },
+
+  renderStore(){
+    const rows=this.getStoreRows(),lyByS=this.getLYStoreRows(),sys=this.getSysKPIs();
+    const st=SS["tbl-store"]||{col:"osat",dir:"desc"};
+    this.renderTable("tbl-store",rows.map(r=>({...r,ly:lyByS[r.store_name]||{},sys:sys||{}})),[
+      {k:"region",l:"Region",rc:true},{k:"area",l:"Area"},{k:"store_name",l:"Store"},
+      {k:"osat",  l:"OSAT",          fmt:F.pct,goal:G.osat,   lyk:"ly.osat",  syk:"sys.osat"},
+      {k:"dissat",l:"Dissat",         fmt:F.pct,goal:2,inv:true,lyk:"ly.dissat",syk:"sys.dissat"},
+      {k:"rating",l:"Rating",         fmt:F.rat,goal:G.rating, lyk:"ly.rating",syk:"sys.rating"},
+      {k:"ms",    l:"Myst. Shopper",  fmt:F.pct,goal:G.ms,     lyk:"ly.ms",    syk:"sys.ms"},
+      {k:"claims",l:"Claims",         fmt:F.int,inv:true,       lyk:"ly.claims",syk:"sys.claims"},
+      {k:"responses",l:"Surveys",fmt:F.int},{k:"reviews",l:"Reviews",fmt:F.int}
+    ],st,"tbl-store",true);
+    if(this.drillStore)this.openDrill(this.drillStore,false);
+  },
+
+  renderTable(id,rawRows,cols,st,tid,clickable){
+    const rows=[...rawRows].sort((a,b)=>{
+      let av=a[st.col],bv=b[st.col];
+      if(st.col.includes(".")){const[o,k]=st.col.split(".");av=a[o]?.[k];bv=b[o]?.[k];}
+      if(av==null&&bv==null)return 0;if(av==null)return 1;if(bv==null)return-1;
+      const c=av<bv?-1:av>bv?1:0;return st.dir==="asc"?c:-c;
+    });
+    const head=`<thead><tr>${cols.map(c=>{const arr=st.col===c.k?`<span style="opacity:1">${st.dir==="asc"?"▲":"▼"}</span>`:`<span style="opacity:.3">▼</span>`;return`<th onclick="sortBy('${tid}','${c.k}')">${c.l} ${arr}</th>`;}).join("")}</tr></thead>`;
+    const body=`<tbody>${rows.map(row=>{
+      const sel=clickable&&row.store_name===this.drillStore?"selected":"";
+      const oc=clickable?`onclick="dash.openDrill('${(row.store_name||"").replace(/'/g,"\\'")}')"`:"";
+      return`<tr class="${clickable?"clickable":""} ${sel}" ${oc}>${cols.map(c=>{
+        if(c.rc){const v=row[c.k]||"";const col=RC[v]||"#333";return`<td style="color:${col};font-weight:700">${v}</td>`;}
+        if(!c.fmt)return`<td>${row[c.k]||""}</td>`;
+        const v=row[c.k];const disp=c.fmt(v);
+        const pc=c.goal!=null?pillCls(v,c.goal,c.inv||false):"na";
+        const pillH=c.goal!=null?`<span class="pill ${pc}">${disp}</span>`:`<span>${disp}</span>`;
+        const cmps=[];
+        if(c.lyk){const[o,k]=c.lyk.split(".");const lyV=row[o]?.[k]??null;const vs=F.vs(v,lyV,c.inv||false);if(vs.t)cmps.push(`<span class="cmp ${vs.c}">${vs.t} LY</span>`);}
+        if(c.syk){const[o,k]=c.syk.split(".");const syV=row[o]?.[k]??null;const vs=F.vs(v,syV,c.inv||false);if(vs.t)cmps.push(`<span class="cmp ${vs.c}">${vs.t} Sys</span>`);}
+        return`<td>${pillH}${cmps.length?`<div class="cmp-row">${cmps.join("")}</div>`:""}</td>`;
+      }).join("")}</tr>`;
+    }).join("")}</tbody>`;
+    document.getElementById(id).innerHTML=head+body;
+  },
+
+  // Returns breakdown rows — weekly uses dedicated weekly source
+  getBkRows(storeName,source,weeklySource){
+    if(this.mode==="weekly"){
+      return(weeklySource||[]).filter(r=>r.store_name===storeName&&r.week===this.period);
+    }
+    if(this.mode==="ytd"){
+      return(source||[]).filter(r=>r.store_name===storeName&&r.month&&r.month.startsWith(this.period));
+    }
+    return(source||[]).filter(r=>r.store_name===storeName&&r.month===this.period);
+  },
+
+  // MS missed questions — weekly uses store_ms_misses_weekly
+  getStoreMsDetails(storeName){
+    const labels=DATA.ms_question_labels;if(!labels)return null;
+    const src=this.mode==="weekly"?(DATA.store_ms_details_weekly||[]):(DATA.store_ms_details||[]);
+    let rows;
+    if(this.mode==="weekly"){rows=src.filter(r=>r.store_name===storeName&&r.week===this.period);}
+    else if(this.mode==="ytd"){const yr=this.period;rows=src.filter(r=>r.store_name===storeName&&r.month&&r.month.startsWith(yr));}
+    else{const m=this.periodToMonth();rows=src.filter(r=>r.store_name===storeName&&r.month===m);}
+    if(!rows.length)return null;
+    const CATS=["Focus","Arrival","Service","Atmosphere","Overall Impressions"];
+    const result={};
+    for(const cat of CATS){
+      const qs=labels[cat];if(!qs)continue;
+      const passes=[],counts=[];
+      qs.forEach((_,qi)=>{
+        let p=0,c=0;
+        rows.forEach(r=>{if(r[cat]&&r[cat].s&&r[cat].s[qi]!=null){p+=r[cat].s[qi];c+=r[cat].c[qi];}});
+        passes.push(c>0?p:null); counts.push(c>0?c:null);
+      });
+      if(passes.some(p=>p!==null))result[cat]={questions:qs,passes,counts};
+    }
+    return Object.keys(result).length?result:null;
+  },
+
+  renderMsDetail(detail){
+    const CATS=["Focus","Arrival","Service","Atmosphere","Overall Impressions"];
+    let out="";
+    for(const cat of CATS){
+      const d=detail[cat];if(!d)continue;
+      const items=d.questions.map((q,i)=>({q,p:d.passes[i],c:d.counts[i]}))
+        .filter(({p,c})=>p!==null&&c>0&&p<c);
+      if(!items.length)continue;
+      out+=`<div class="msdet-cat">${cat}</div>`;
+      items.forEach(({q,p,c})=>{
+        const pct=p/c;
+        const clr=pct<=0?"#dc2626":pct<0.5?"#f97316":"#eab308";
+        const missed=c-p;
+        out+=`<div class="msdet-row"><span class="msdet-q">${q}</span><span class="msdet-s" style="color:${clr};background:${clr}18">${missed}/${c} missed</span></div>`;
+      });
+    }
+    if(!out)return`<div class="no-data" style="margin-top:8px;color:#16a34a">✓ All answered questions passed</div>`;
+    return`<div class="msdet-wrap"><div class="msdet-hdr">Questions not at 100%</div>${out}</div>`;
+  },
+
+  getStoreClaims(storeName){
+    const m=this.periodToMonth();
+    const rows=DATA.store_claims_monthly.filter(r=>{
+      if(r.store_name!==storeName)return false;
+      if(this.mode==="ytd")return r.month&&r.month.startsWith(this.period);
+      return r.month===m;
+    });
+    const catCounts={},catSubcats={};
+    rows.forEach(r=>{
+      catCounts[r.category]=(catCounts[r.category]||0)+r.count;
+      if(!catSubcats[r.category])catSubcats[r.category]={};
+      (r.subcats||[]).forEach(s=>{catSubcats[r.category][s.name]=(catSubcats[r.category][s.name]||0)+s.count;});
+    });
+    return Object.entries(catCounts)
+      .map(([cat,count])=>({category:cat,count,subcats:Object.entries(catSubcats[cat]||{}).map(([n,c])=>({name:n,count:c})).sort((a,b)=>b.count-a.count).slice(0,3)}))
+      .sort((a,b)=>b.count-a.count);
+  },
+
+  getStoreResolution(storeName){
+    const m=this.periodToMonth();
+    const rows=DATA.store_claims_resolution.filter(r=>{
+      if(r.store_name!==storeName)return false;
+      if(this.mode==="ytd")return r.month&&r.month.startsWith(this.period);
+      return r.month===m;
+    });
+    const resCounts={};
+    rows.forEach(r=>resCounts[r.resolution]=(resCounts[r.resolution]||0)+r.count);
+    return Object.entries(resCounts).map(([res,count])=>({resolution:res,count})).sort((a,b)=>b.count-a.count);
+  },
+
+  // ── Get store reviews filtered by period ──────────────────────────────────
+  getStoreReviews(storeName){
+    const byMonth=DATA.store_reviews_monthly||{};
+    const storeMonths=byMonth[storeName]||{};
+
+    if(this.mode==="weekly"){
+      // Convert week → month, show that month's reviews
+      const m=this.periodToMonth();
+      return storeMonths[m]||{positive:[],negative:[]};
+    }
+    if(this.mode==="monthly"){
+      return storeMonths[this.period]||{positive:[],negative:[]};
+    }
+    if(this.mode==="ytd"){
+      // Combine all months in the year, deduplicate, pick top 5 each
+      const yr=this.period;
+      const pos=[],neg=[];
+      Object.entries(storeMonths)
+        .filter(([m])=>m.startsWith(yr))
+        .sort(([a],[b])=>b.localeCompare(a))
+        .forEach(([,v])=>{
+          (v.positive||[]).forEach(r=>pos.length<8&&pos.push(r));
+          (v.negative||[]).forEach(r=>neg.length<8&&neg.push(r));
+        });
+      return{positive:pos.slice(0,5),negative:neg.slice(0,5)};
+    }
+    // fallback: all-time top
+    return DATA.store_reviews[storeName]||{positive:[],negative:[]};
+  },
+
+  openDrill(storeName,scroll=true){
+    this.drillStore=storeName;
+    const panel=document.getElementById("drill-panel");
+    panel.classList.add("open");
+    const m=this.periodToMonth();
+
+    const kpiRows=DATA.store_monthly.filter(r=>{
+      if(r.store_name!==storeName)return false;
+      if(this.mode==="ytd")return r.month&&r.month.startsWith(this.period);
+      return r.month===m;
+    });
+    const kpi=aggRows(kpiRows)||{};
+    const meta=DATA.meta.store_meta.find(s=>s.store_name===storeName)||{};
+
+    // Category bars: weekly uses store_cats_weekly, monthly/ytd use store_cats
+    let catRows;
+    if(this.mode==="weekly"){
+      catRows=(DATA.store_cats_weekly||[]).filter(r=>r.store_name===storeName&&r.week===this.period);
+    } else {
+      catRows=DATA.store_cats.filter(r=>{
+        if(r.store_name!==storeName)return false;
+        if(this.mode==="ytd")return r.month&&r.month.startsWith(this.period);
+        return r.month===m;
+      });
+    }
+    const cats={};
+    if(catRows.length){
+      ["taste","temperature","cleanliness","friendliness","speed","accuracy","availability","value","ms_arrival","ms_service","ms_atmosphere","ms_overall"].forEach(k=>{
+        const vals=catRows.map(r=>r[k]).filter(v=>v!=null);
+        cats[k]=vals.length?+(vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1):null;
+      });
+    }
+    // ms_focus computed from store_ms_details question passes/counts
+    {
+      const msd=this.getStoreMsDetails(storeName);
+      if(msd&&msd.Focus){
+        const f=msd.Focus,tp=f.passes.reduce((a,v)=>a+(v||0),0),tc=f.counts.reduce((a,v)=>a+(v||0),0);
+        cats.ms_focus=tc>0?+(tp/tc*100).toFixed(1):null;
       }
     }
-  });
-}
 
-// ── Director View ──────────────────────────────────────────────────────────────
-function renderDirector() {
-  const n = DATA.national;
-  const g = G();
-  const regions = DATA.regions || {};
+    // Breakdown — weekly uses dedicated weekly arrays (n>=1)
+    const chRows=this.getBkRows(storeName,DATA.store_channel,DATA.store_channel_weekly);
+    const tmRows=this.getBkRows(storeName,DATA.store_time,DATA.store_time_weekly);
+    const dwRows=this.getBkRows(storeName,DATA.store_dow,DATA.store_dow_weekly);
+    const chAgg=aggBreakdown(chRows,"channel_label");
+    const tmAgg=aggBreakdown(tmRows,"time_slot");
+    const dwAgg=aggBreakdown(dwRows,"dow");
 
-  const cards = [
-    kpiCard('OSAT (Top 2 Box)', n.osat?.ytd,  fmtPct,   'osat',   g.osat,   n.osat?.n),
-    kpiCard('Rating (Avg ★)',   n.rating?.ytd, fmtRating,'rating', g.rating, n.rating?.n),
-    kpiCard('Mystery Shopper',  n.ms?.ytd,     fmtPct,   'ms',     g.ms,     n.ms?.n),
-    kpiCard('Claims (Atel)',    n.claims?.ytd, fmtClaims,'claims', null,     null),
-  ].join('');
+    const msDetail=this.getStoreMsDetails(storeName);
+    const clmData=this.getStoreClaims(storeName);
+    const resData=this.getStoreResolution(storeName);
 
-  // Region cards
-  const regCards = (DATA.meta.all_regions || []).map(reg => {
-    const r = regions[reg] || {};
-    const oc = kpiColor('osat',   r.osat?.ytd);
-    const rc = kpiColor('rating', r.rating?.ytd);
-    const mc = kpiColor('ms',     r.ms?.ytd);
-    const col = RC[reg] || '#888';
-    return `<div class="reg-card" style="border-left-color:${col}">
-      <div class="reg-name" style="color:${col}">${reg}</div>
-      <div class="reg-kpis">
-        <div class="reg-kpi">
-          <div class="reg-kpi-val" style="color:${oc==='ok'?'var(--green)':oc==='bad'?'var(--red)':'#999'}">${fmtPct(r.osat?.ytd)}</div>
-          <div class="reg-kpi-lbl">OSAT</div>
-        </div>
-        <div class="reg-kpi">
-          <div class="reg-kpi-val" style="color:${rc==='ok'?'var(--green)':rc==='bad'?'var(--red)':'#999'}">${fmtRating(r.rating?.ytd)}</div>
-          <div class="reg-kpi-lbl">Rating</div>
-        </div>
-        <div class="reg-kpi">
-          <div class="reg-kpi-val" style="color:${mc==='ok'?'var(--green)':mc==='bad'?'var(--red)':'#999'}">${fmtPct(r.ms?.ytd)}</div>
-          <div class="reg-kpi-lbl">MS</div>
-        </div>
-        <div class="reg-kpi">
-          <div class="reg-kpi-val">${fmtClaims(r.claims?.ytd)}</div>
-          <div class="reg-kpi-lbl">Claims</div>
-        </div>
+    // Reviews — period-aware
+    const revs=this.getStoreReviews(storeName);
+    const periodLbl=this.fmtPeriod(this.period);
+
+    const dkpis=[
+      {l:"OSAT",v:F.pct(kpi.osat),sc:stCls(kpi.osat,G.osat,false)},
+      {l:"Dissatisfied",v:F.pct(kpi.dissat),sc:stCls(kpi.dissat,2,true)},
+      {l:"Rating",v:F.rat(kpi.rating),sc:stCls(kpi.rating,G.rating,false)},
+      {l:"Myst. Shopper",v:F.pct(kpi.ms),sc:stCls(kpi.ms,G.ms,false)},
+      {l:"Claims",v:F.int(kpi.claims),sc:"na"},
+    ];
+
+    const sid="d_"+storeName.replace(/[^a-z0-9]/gi,"_");
+    const clmTotal=clmData.reduce((s,r)=>s+r.count,0);
+    const resTotal=resData.reduce((s,r)=>s+r.count,0);
+    const weeklyNote=this.mode==="weekly"?`<div class="period-note">Showing weekly data for ${periodLbl}</div>`:"";
+
+    const clmTabHtml=clmData.length?`
+      <div class="bk-section">
+        <div class="bk-title">Claims by Category &nbsp;<span style="font-weight:400;color:var(--muted)">(${clmTotal} total)</span></div>
+        <div class="bk-chart" style="height:${Math.max(130,clmData.length*34)}px"><canvas id="${sid}_clm_cat"></canvas></div>
       </div>
-    </div>`;
-  }).join('');
-
-  // All stores table
-  const storeEntries = Object.entries(DATA.stores || {})
-    .filter(([,d]) => d.osat?.ytd != null || d.rating?.ytd != null);
-  const storeTable = makeStoreTable(storeEntries, 'dir-store-tbl', true);
-
-  // Search
-  const searchBar = `<input class="search-input" id="store-search" placeholder="Search stores…" oninput="filterStoreTable()">`;
-
-  document.getElementById('main').innerHTML = `
-    <div class="kpi-row">${cards}</div>
-
-    <p class="section-title">By Region</p>
-    <div class="region-grid">${regCards}</div>
-
-    <div class="card">
-      <div class="card-hdr">
-        <h3>All Stores</h3>
-        <div style="display:flex;gap:8px;align-items:center">
-          ${searchBar}
-          <span class="tag">${storeEntries.length} stores</span>
-        </div>
+      <div style="margin-top:4px;margin-bottom:14px">
+        ${clmData.slice(0,6).map(r=>`<div class="clm-cat-row"><div><div class="clm-cat-name">${r.category}</div>${r.subcats.length?`<div class="clm-subcats">${r.subcats.map(s=>`${s.name} (${s.count})`).join(" · ")}</div>`:""}</div><div class="clm-cat-n">${r.count}</div></div>`).join("")}
       </div>
-      ${storeTable}
-    </div>
-  `;
-}
+      ${resData.length?`<div class="bk-title">Resolution Methods &nbsp;<span style="font-weight:400;color:var(--muted)">(${resTotal} total)</span></div>
+      <div class="bk-chart" style="height:${Math.max(120,resData.length*30)}px"><canvas id="${sid}_clm_res"></canvas></div>`:""}
+    `:`<div class="no-data" style="margin-top:12px">No claims data for this store in the selected period.</div>`;
 
-function filterStoreTable() {
-  const q = (document.getElementById('store-search')?.value || '').toLowerCase();
-  document.querySelectorAll('#dir-store-tbl tbody tr').forEach(tr => {
-    tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none';
-  });
-}
-
-// ── Area Manager View ──────────────────────────────────────────────────────────
-function renderAreaManager() {
-  const selVal = document.getElementById('area-select')?.value;
-  if (!selVal) {
-    document.getElementById('main').innerHTML = `
-      <div class="loading" style="height:40vh">
-        <div style="font-size:28px">👆</div>
-        <div style="color:var(--muted)">Select your area from the dropdown above</div>
+    panel.innerHTML=`
+      <div class="drill-hdr">
+        <div><div class="drill-title">${storeName}</div><div class="drill-meta">${meta.region||""} — ${meta.area||""} &nbsp;·&nbsp; ${periodLbl}</div></div>
+        <button class="drill-close" onclick="dash.closeDrill()">&#x2715;</button>
+      </div>
+      <div class="drill-kpis">${dkpis.map(d=>`<div class="dk"><div class="dk-val ${d.sc}">${d.v}</div><div class="dk-lbl">${d.l}</div></div>`).join("")}</div>
+      <div class="drill-body">
+        <div class="drill-left">
+          <div class="dtabs">
+            <button class="dtab-btn on" onclick="dash.dtab(this,'${sid}_survey')">📋 Survey</button>
+            <button class="dtab-btn" onclick="dash.dtab(this,'${sid}_breakdown')">📊 OSAT Breakdown</button>
+            <button class="dtab-btn" onclick="dash.dtab(this,'${sid}_ms')">🔍 Mystery Shopper</button>
+            <button class="dtab-btn" onclick="dash.dtab(this,'${sid}_claims')">📞 Claims</button>
+          </div>
+          <div class="dtab-c on" id="${sid}_survey">
+            <div class="bk-title">Satisfaction by Category (% 5★)</div>
+            ${this.catBars([["Taste","taste"],["Temperature","temperature"],["Cleanliness","cleanliness"],["Friendliness","friendliness"],["Speed","speed"],["Accuracy","accuracy"],["Availability","availability"],["Value","value"]],cats,80,"%")}
+          </div>
+          <div class="dtab-c" id="${sid}_breakdown">
+            ${weeklyNote}
+            <div class="bk-section">
+              <div class="bk-title">OSAT by Channel</div>
+              <div class="bk-chart" style="height:${Math.max(120,Math.max(1,chAgg.length)*36)}px"><canvas id="${sid}_ch"></canvas></div>
+            </div>
+            <div class="bk-section">
+              <div class="bk-title">OSAT by Time of Day</div>
+              <div class="bk-chart" style="height:${Math.max(100,4*36)}px"><canvas id="${sid}_tm"></canvas></div>
+            </div>
+            <div class="bk-section">
+              <div class="bk-title">OSAT by Day of Week</div>
+              <div class="bk-chart" style="height:${Math.max(120,7*34)}px"><canvas id="${sid}_dw"></canvas></div>
+            </div>
+          </div>
+          <div class="dtab-c" id="${sid}_ms">
+            <div class="bk-title">Mystery Shopper Categories</div>
+            ${this.catBars([["Focus","ms_focus"],["Arrival","ms_arrival"],["Service","ms_service"],["Atmosphere","ms_atmosphere"],["Overall Impr.","ms_overall"]],cats,90,"%")}
+            ${msDetail?this.renderMsDetail(msDetail):`<div class="no-data" style="margin-top:12px">No Mystery Shopper data for this store in the selected period.</div>`}
+          </div>
+          <div class="dtab-c" id="${sid}_claims">${clmTabHtml}</div>
+        </div>
+        <div class="drill-right">
+          <div class="rev-sec-title">⭐ What Customers Love <span style="font-weight:400;font-size:10px;color:var(--muted);text-transform:none;letter-spacing:0">(${periodLbl})</span></div>
+          ${revs.positive&&revs.positive.length?revs.positive.map(r=>`<div class="rev-card rev-pos"><div class="rev-hdr"><span class="rev-stars" style="color:#F9A825">${"★".repeat(r.r)}${"☆".repeat(5-r.r)}</span><span class="rev-date">${r.d}</span></div><div class="rev-txt">${this.esc(r.t)}</div></div>`).join(""):`<div class="no-data">No positive reviews available for this period.</div>`}
+          <div class="rev-sec-title" style="margin-top:14px">⚠️ Areas for Improvement <span style="font-weight:400;font-size:10px;color:var(--muted);text-transform:none;letter-spacing:0">(${periodLbl})</span></div>
+          ${revs.negative&&revs.negative.length?revs.negative.map(r=>`<div class="rev-card rev-neg"><div class="rev-hdr"><span class="rev-stars" style="color:#E53935">${"★".repeat(r.r)}${"☆".repeat(5-r.r)}</span><span class="rev-date">${r.d}</span></div><div class="rev-txt">${this.esc(r.t)}</div></div>`).join(""):`<div class="no-data">No negative reviews available for this period.</div>`}
+        </div>
       </div>`;
-    return;
-  }
 
-  const areaData = (DATA.areas || {})[selVal] || {};
-  const g = G();
-
-  const cards = [
-    kpiCard('OSAT (Top 2 Box)', areaData.osat?.ytd,   fmtPct,   'osat',   g.osat,   areaData.osat?.n),
-    kpiCard('Rating (Avg ★)',   areaData.rating?.ytd,  fmtRating,'rating', g.rating, areaData.rating?.n),
-    kpiCard('Mystery Shopper',  areaData.ms?.ytd,      fmtPct,   'ms',     g.ms,     areaData.ms?.n),
-    kpiCard('Claims (Atel)',    areaData.claims?.ytd,  fmtClaims,'claims', null,     null),
-  ].join('');
-
-  // Stores for this area
-  const storeEntries = Object.entries(DATA.stores || {})
-    .filter(([,d]) => d.area === selVal);
-
-  const storeTable = makeStoreTable(storeEntries, 'am-store-tbl', false);
-
-  // Monthly trend
-  const osatM  = buildTrendData(areaData.osat?.weeks, areaData.osat?.months, true);
-  const ratingM = buildTrendData(areaData.rating?.weeks, areaData.rating?.months, true);
-  const msM    = buildTrendData(null, areaData.ms?.months, true);
-
-  document.getElementById('main').innerHTML = `
-    <div style="margin-bottom:10px">
-      <span style="font-size:13px;font-weight:700">${selVal}</span>
-      <span style="margin-left:8px;font-size:12px;color:var(--muted)">
-        ${areaData.region||''} · Manager: ${areaData.manager||''}
-      </span>
-    </div>
-    <div class="kpi-row">${cards}</div>
-
-    <p class="section-title">Monthly Trends</p>
-    <div class="trend-grid">
-      <div class="chart-card">
-        <div class="chart-title">OSAT %</div>
-        <div class="chart-box"><canvas id="am-osat"></canvas></div>
-      </div>
-      <div class="chart-card">
-        <div class="chart-title">Rating ★</div>
-        <div class="chart-box"><canvas id="am-rating"></canvas></div>
-      </div>
-      <div class="chart-card">
-        <div class="chart-title">Mystery Shopper %</div>
-        <div class="chart-box"><canvas id="am-ms"></canvas></div>
-      </div>
-      <div class="chart-card">
-        <div class="chart-title">Claims Count (monthly)</div>
-        <div class="chart-box"><canvas id="am-claims"></canvas></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-hdr">
-        <h3>Stores in ${selVal}</h3>
-        <span class="tag">${storeEntries.length} stores</span>
-      </div>
-      ${storeTable}
-    </div>
-  `;
-
-  trendChart('am-osat',   osatM.labels,  osatM.vals,  '#FF8200');
-  trendChart('am-rating', ratingM.labels, ratingM.vals,'#4F2C1D', true);
-  trendChart('am-ms',     msM.labels,    msM.vals,    '#A8AD00');
-
-  const claimsM = buildTrendData(areaData.claims?.weeks, areaData.claims?.months, true);
-  const claimsCtx = document.getElementById('am-claims');
-  if (claimsCtx) new Chart(claimsCtx, {
-    type:'bar',
-    data:{labels:claimsM.labels, datasets:[{
-      data:claimsM.vals, backgroundColor:'#FF820055', borderColor:'#FF8200', borderWidth:1
-    }]},
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{display:false}, datalabels:{display:false}},
-      scales:{
-        x:{grid:{display:false},ticks:{font:{size:9}}},
-        y:{grid:{color:'#F0EEEB'},ticks:{font:{size:9}}}
+    setTimeout(()=>{
+      if(chAgg.length&&document.getElementById(`${sid}_ch`)){
+        mkBar(`${sid}_ch`,chAgg.map(r=>r.channel_label),[{label:"OSAT %",data:chAgg.map(r=>r.osat??null),nData:chAgg.map(r=>r.n),gFn:v=>v>=G.osat}],F.pct,document.getElementById(`${sid}_ch`));
       }
+      const tmOrder=DATA.meta.time_order||["Before 11am","11am–3pm","3pm–6pm","After 6pm"];
+      const tmBySlot={};tmAgg.forEach(r=>tmBySlot[r.time_slot]=r);
+      const tmLabels=tmOrder.filter(s=>tmBySlot[s]);
+      if(tmLabels.length&&document.getElementById(`${sid}_tm`)){
+        mkBar(`${sid}_tm`,tmLabels,[{label:"OSAT %",data:tmLabels.map(s=>tmBySlot[s]?.osat??null),nData:tmLabels.map(s=>tmBySlot[s]?.n??null),gFn:v=>v>=G.osat}],F.pct,document.getElementById(`${sid}_tm`));
+      }
+      const dwOrder=DATA.meta.dow_order||["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+      const dwByDay={};dwAgg.forEach(r=>dwByDay[r.dow]=r);
+      const dwLabels=dwOrder.filter(d=>dwByDay[d]);
+      if(dwLabels.length&&document.getElementById(`${sid}_dw`)){
+        mkBar(`${sid}_dw`,dwLabels,[{label:"OSAT %",data:dwLabels.map(d=>dwByDay[d]?.osat??null),nData:dwLabels.map(d=>dwByDay[d]?.n??null),gFn:v=>v>=G.osat}],F.pct,document.getElementById(`${sid}_dw`));
+      }
+      if(clmData.length&&document.getElementById(`${sid}_clm_cat`)){
+        const top=clmData.slice(0,8);
+        mkBar(`${sid}_clm_cat`,top.map(r=>r.category.length>28?r.category.slice(0,28)+"…":r.category),[{label:"Claims",data:top.map(r=>r.count),barColors:top.map(()=>"#8D4A41")}],F.int,document.getElementById(`${sid}_clm_cat`));
+      }
+      if(resData.length&&document.getElementById(`${sid}_clm_res`)){
+        const topR=resData.slice(0,8);
+        mkBar(`${sid}_clm_res`,topR.map(r=>r.resolution.length>26?r.resolution.slice(0,26)+"…":r.resolution),[{label:"Cases",data:topR.map(r=>r.count),barColors:topR.map(()=>"#4F2C1D")}],F.int,document.getElementById(`${sid}_clm_res`));
+      }
+    },120);
+
+    if(scroll)panel.scrollIntoView({behavior:"smooth",block:"start"});
+    document.querySelectorAll("#tbl-store tbody tr").forEach(tr=>tr.classList.toggle("selected",tr.textContent.includes(storeName)));
+  },
+
+  catBars(cats,data,goal,unit){
+    if(!cats.some(([l,k])=>data[k]!=null))return`<div class="no-data">No category data available for this period.</div>`;
+    return cats.map(([label,key])=>{
+      const v=data[key];const pct=v!=null?Math.min(100,v):0;
+      const bc=v==null?"ok":v>=goal?"ok":v>=(goal-15)?"warn":"bad";
+      const icon=CAT_ICONS[label]||"";
+      return`<div class="cat-row"><div class="cat-lbl"><span class="cat-icon">${icon}</span>${label}</div><div class="cat-bg"><div class="cat-bar ${bc}" style="width:${pct}%"></div></div><div class="cat-val">${v!=null?v.toFixed(1)+unit:"—"}</div></div>`;
+    }).join("");
+  },
+
+  dtab(btn,tid){
+    btn.closest(".drill-left").querySelectorAll(".dtab-btn").forEach(b=>b.classList.remove("on"));
+    btn.closest(".drill-left").querySelectorAll(".dtab-c").forEach(c=>c.classList.remove("on"));
+    btn.classList.add("on");document.getElementById(tid).classList.add("on");
+  },
+
+  closeDrill(){this.drillStore=null;document.getElementById("drill-panel").classList.remove("open");document.querySelectorAll("#tbl-store tbody tr").forEach(tr=>tr.classList.remove("selected"));},
+
+  esc(s){return(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");},
+
+  renderGoalAttainment(){
+    const el=document.getElementById('goal-attain-row');
+    if(!el)return;
+    const yr=this.mode==='ytd'?this.period:null;
+    const mo=this.mode==='monthly'?this.periodToMonth():null;
+    const filterMo=mo||(yr?null:DATA.meta.last_month);
+    let rows=DATA.store_monthly.filter(r=>{
+      if(this.region&&r.region!==this.region)return false;
+      if(this.area&&r.area!==this.area)return false;
+      if(this.store&&r.store_name!==this.store)return false;
+      if(yr)return r.month&&r.month.startsWith(yr)&&r.month<=(yr+DATA.meta.last_month.slice(4));
+      return r.month===filterMo;
+    });
+    let storeKPIs;
+    if(yr){
+      const byS={};rows.forEach(r=>{if(!byS[r.store_name])byS[r.store_name]=[];byS[r.store_name].push(r);});
+      storeKPIs=Object.values(byS).map(rs=>aggRows(rs)).filter(Boolean);
+    } else {
+      storeKPIs=rows.filter(r=>r.osat!=null||r.rating!=null||r.ms!=null);
     }
+    const total=storeKPIs.length;
+    if(!total){el.style.display='none';return;}
+    el.style.display='';
+    const note=document.getElementById('ga-note');
+    if(note)note.style.display=this.mode==='weekly'?'':'none';
+    function gaCard(label,goal,field,fmtGoal){
+      const ok=storeKPIs.filter(s=>s[field]!=null&&s[field]>=goal).length;
+      const na=storeKPIs.filter(s=>s[field]==null).length;
+      const denom=total-na;
+      const pct=denom>0?Math.round(ok/denom*100):0;
+      const sc=pct>=80?'ga-ok':pct>=60?'ga-warn':'ga-bad';
+      return '<div class="ga-card">'
+        +'<div class="ga-top"><span class="ga-name">'+label+'</span><span class="ga-goal-lbl">Goal '+fmtGoal+'</span></div>'
+        +'<div class="ga-bar-wrap"><div class="ga-bar '+sc+'" style="width:'+pct+'%"></div></div>'
+        +'<div class="ga-bottom">'
+        +'<span class="ga-big '+sc+'">'+ok+'<span class="ga-denom">/'+denom+'</span></span>'
+        +'<span class="ga-pct-lbl">stores on goal</span>'
+        +'<span class="ga-pct '+sc+'">'+pct+'%</span>'
+        +'</div></div>';
+    }
+    el.innerHTML=gaCard('OSAT',90,'osat','≥90%')+gaCard('Rating',4.3,'rating','≥4.3')+gaCard('Mystery Shopper',90,'ms','≥90%');
+  },
+
+  renderWatchList: function(){
+    if(this.drillCluster){this.drillWatchList(this.drillCluster);return;}
+    var ov=document.getElementById('wl-overview');
+    var dt=document.getElementById('wl-detail');
+    if(!ov)return;
+    dt.style.display='none'; ov.style.display='';
+    var mo=this.mode==='weekly'?null:this.period;
+    var wk=this.mode==='weekly'?this.period:null;
+    var html='<div class="wl-grid">';
+    WATCH_CLUSTERS.forEach(function(cl){
+      var agg=wlAgg(cl.stores,mo,wk);
+      var oC=stCls(agg.osat,90),rC=stCls(agg.rating,4.3),mC=stCls(agg.ms,90);
+      var osV=agg.osat!=null?agg.osat.toFixed(1)+'%':'&mdash;';
+      var rtV=agg.rating!=null?agg.rating.toFixed(1):'&mdash;';
+      var msV=agg.ms!=null?agg.ms.toFixed(1)+'%':'&mdash;';
+      var clV=agg.claims!=null?agg.claims:'&mdash;';
+      html+='<div class="wl-card" data-cid="'+cl.id+'">'
+        +'<div class="wl-card-hdr">'+cl.name+'</div>'
+        +'<div class="wl-pills">'
+        +'<span class="wl-pill '+oC+'">OSAT '+osV+'</span>'
+        +'<span class="wl-pill '+rC+'">Rating '+rtV+'</span>'
+        +'<span class="wl-pill '+mC+'">MS '+msV+'</span>'
+        +'<span class="wl-pill na">Claims '+clV+'</span>'
+        +'</div>'
+        +'<div class="wl-stores">'+cl.stores.join(' &middot; ')+'</div>'
+        +'<button class="wl-btn" data-cid="'+cl.id+'">View Detail &rsaquo;</button>'
+        +'</div>';
+    });
+    ov.innerHTML=html+'</div>';
+    var self=this;
+    ov.querySelectorAll('[data-cid]').forEach(function(el){
+      el.addEventListener('click',function(){self.drillWatchList(el.getAttribute('data-cid'));});
+    });
+  },
+
+  drillWatchList: function(cid){
+    var cl=WATCH_CLUSTERS.find(function(c){return c.id===cid;});
+    if(!cl)return;
+    dash.drillCluster=cid;
+    var ov=document.getElementById('wl-overview');
+    var dt=document.getElementById('wl-detail');
+    ov.style.display='none'; dt.style.display='';
+    var mo=this.mode==='weekly'?null:this.period;
+    var wk=this.mode==='weekly'?this.period:null;
+    var allWks=DATA.meta.all_weeks.slice(-13);
+    var allMos=DATA.meta.all_months.slice(-13);
+    var period=mo||wk||'YTD';
+    var agg=wlAgg(cl.stores,mo,wk);
+    var oC=stCls(agg.osat,90),rC=stCls(agg.rating,4.3),mC=stCls(agg.ms,90);
+    var stData=cl.stores.map(function(s){
+      var d=wlStoreMo(s,mo,wk);
+      return{name:s,osat:d.osat,rating:d.rating,ms:d.ms,claims:d.claims,responses:d.responses};
+    });
+    var stDataRating=cl.stores.map(function(s){
+      if(wk){
+        var byWk=wlStoreWeeklyRating(s);
+        var wd=byWk[wk];
+        return{name:s,rating:(wd&&wd.n>0)?Math.round(wd.ss/wd.n*10)/10:null};
+      }
+      var d=wlStoreMo(s,mo,null);
+      return{name:s,rating:d.rating};
+    });
+    var ratingBarLbl=wk?('Rating by Store &mdash; '+wk+' &mdash; Goal 4.3'):'Rating by Store &mdash; Goal 4.3';
+    var html='<div class="wl-detail-hdr">'
+      +'<button class="wl-back" id="wl-back-btn">&larr; All Clusters</button>'
+      +'<span class="wl-title">'+cl.name+' &mdash; '+period+'</span>'
+      +'</div>'
+      +'<div class="wl-pills" style="margin-bottom:20px;">'
+      +'<span class="wl-pill '+oC+'">OSAT '+(agg.osat!=null?agg.osat.toFixed(1)+'%':'&mdash;')+'</span>'
+      +'<span class="wl-pill '+rC+'">Rating '+(agg.rating!=null?agg.rating.toFixed(1):'&mdash;')+'</span>'
+      +'<span class="wl-pill '+mC+'">MS '+(agg.ms!=null?agg.ms.toFixed(1)+'%':'&mdash;')+'</span>'
+      +'<span class="wl-pill na">Claims '+(agg.claims||0)+'</span>'
+      +'<span class="wl-pill na">'+(agg.responses||0)+' surveys</span>'
+      +'</div>';
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;">'
+      +'<div class="wl-chart-box"><div class="wl-chart-lbl">OSAT Trend &mdash; L13W</div>'
+      +'<div style="position:relative;height:180px;"><canvas id="wl-cl-osat-'+cid+'"></canvas></div></div>'
+      +'<div class="wl-chart-box"><div class="wl-chart-lbl">Rating Trend &mdash; Last 13 Months</div>'
+      +'<div style="position:relative;height:180px;"><canvas id="wl-cl-rating-'+cid+'"></canvas></div></div>'
+      +'<div class="wl-chart-box"><div class="wl-chart-lbl">Mystery Shopper Trend &mdash; L13W</div>'
+      +'<div style="position:relative;height:180px;"><canvas id="wl-cl-ms-'+cid+'"></canvas></div></div>'
+      +'</div>';
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;">'
+      +'<div class="wl-chart-box"><div class="wl-chart-lbl">OSAT % by Store &mdash; Goal 90%</div>'
+      +'<div style="position:relative;height:220px;"><canvas id="wl-osat-bar-'+cid+'"></canvas></div></div>'
+      +'<div class="wl-chart-box"><div class="wl-chart-lbl">'+ratingBarLbl+'</div>'
+      +'<div style="position:relative;height:220px;"><canvas id="wl-rating-bar-'+cid+'"></canvas></div></div>'
+      +'<div class="wl-chart-box"><div class="wl-chart-lbl">MS % by Store &mdash; Goal 90%</div>'
+      +'<div style="position:relative;height:220px;"><canvas id="wl-ms-bar-'+cid+'"></canvas></div></div>'
+      +'</div>';
+    html+='<div class="wl-chart-box" style="margin-bottom:16px;">'
+      +'<div class="wl-chart-lbl">OSAT by Store &mdash; Last 13 Weeks</div>'
+      +'<div style="position:relative;height:200px;"><canvas id="wl-trend-'+cid+'"></canvas></div>'
+      +'</div>';
+    html+='<div class="wl-section-hdr" style="margin-top:4px;">Store Detail</div>'
+      +'<table style="width:100%;border-collapse:collapse;font-size:13px;">'
+      +'<thead><tr style="border-bottom:2px solid #eee;">'
+      +'<th style="text-align:left;padding:8px 10px;color:#666;">Store</th>'
+      +'<th style="text-align:center;padding:8px 10px;color:#666;">OSAT</th>'
+      +'<th style="text-align:center;padding:8px 10px;color:#666;">Rating</th>'
+      +'<th style="text-align:center;padding:8px 10px;color:#666;">MS</th>'
+      +'<th style="text-align:center;padding:8px 10px;color:#666;">Claims</th>'
+      +'<th style="text-align:center;padding:8px 10px;color:#666;">Surveys</th>'
+      +'</tr></thead><tbody>';
+    stData.forEach(function(d,i){
+      var rd=stDataRating[i];
+      var rv=rd?rd.rating:null;
+      var oC2=stCls(d.osat,90),rC2=stCls(rv,4.3),mC2=stCls(d.ms,90);
+      var bg=i%2===0?'#fafafa':'#fff';
+      function pill(v,cls,fmt){return v!=null?'<span style="background:'+(cls==='ok'?'#e6f4ea':'#fde8e8')+';color:'+(cls==='ok'?'#1e7e34':'#c0392b')+';padding:2px 8px;border-radius:10px;font-weight:600;">'+fmt(v)+'</span>':'<span style="color:#bbb;">&mdash;</span>';}
+      html+='<tr style="background:'+bg+';border-bottom:1px solid #f0f0f0;">'
+        +'<td style="padding:8px 10px;font-weight:600;color:#4F2C1D;">'+d.name+'</td>'
+        +'<td style="text-align:center;padding:8px 10px;">'+pill(d.osat,oC2,function(v){return v.toFixed(1)+'%';})+'</td>'
+        +'<td style="text-align:center;padding:8px 10px;">'+pill(rv,rC2,function(v){return v.toFixed(1);})+'</td>'
+        +'<td style="text-align:center;padding:8px 10px;">'+pill(d.ms,mC2,function(v){return v.toFixed(1)+'%';})+'</td>'
+        +'<td style="text-align:center;padding:8px 10px;">'+(d.claims||0)+'</td>'
+        +'<td style="text-align:center;padding:8px 10px;">'+(d.responses||0)+'</td>'
+        +'</tr>';
+    });
+    dt.innerHTML=html+'</tbody></table>';
+    document.getElementById('wl-back-btn').addEventListener('click',function(){
+      dash.drillCluster=null;
+      dash.renderWatchList();
+    });
+    var clOsatByWk=wlClusterWeeklyOsat(cl.stores);
+    var clOsatVals=allWks.map(function(w){var d=clOsatByWk[w];return(d&&d.n>0)?Math.round(d.ss/d.n*1000)/10:null;});
+    var clOsatCtx=document.getElementById('wl-cl-osat-'+cid);
+    if(clOsatCtx) new Chart(clOsatCtx,wlTrendCfg(allWks,clOsatVals,'rgba(255,130,0,1)','rgba(255,130,0,0.12)',function(v){return v+'%';},90,70));
+    var clRatingByMo=wlClusterMonthlyRating(cl.stores);
+    var clRatingVals=allMos.map(function(m){var d=clRatingByMo[m];return(d&&d.n>0)?Math.round(d.ss/d.n*10)/10:null;});
+    var clRatingCtx=document.getElementById('wl-cl-rating-'+cid);
+    if(clRatingCtx) new Chart(clRatingCtx,wlTrendCfg(allMos,clRatingVals,'rgba(255,130,0,1)','rgba(255,130,0,0.12)',function(v){return v.toFixed(1);},4.3,3.5));
+    var clMsByWk=wlClusterWeeklyMs(cl.stores);
+    var clMsVals=allWks.map(function(w){var d=clMsByWk[w];return(d&&d.n>0)?Math.round(d.ss/d.n*10)/10:null;});
+    var clMsCtx=document.getElementById('wl-cl-ms-'+cid);
+    if(clMsCtx) new Chart(clMsCtx,wlTrendCfg(allWks,clMsVals,'rgba(255,130,0,1)','rgba(255,130,0,0.12)',function(v){return v+'%';},90,50));
+    function mkVBar(canvasId,vals,goal,fmtFn,minY){
+      var ctx=document.getElementById(canvasId);
+      if(!ctx)return;
+      var bgc=vals.map(function(v){return(v!=null&&goal!=null&&v>=goal)?'rgba(30,126,52,.8)':'rgba(192,57,43,.8)';});
+      new Chart(ctx,{type:'bar',
+        data:{labels:cl.stores,datasets:[{data:vals,backgroundColor:bgc,borderRadius:4,label:''}]},
+        options:{responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{display:false},
+            datalabels:{anchor:'end',align:'top',formatter:function(v){return v!=null?fmtFn(v):'';},
+              font:{size:10,weight:'600'},color:'#333'}},
+          scales:{y:{min:minY,ticks:{callback:function(v){return fmtFn(v);},font:{size:10}},
+              grid:{color:'rgba(0,0,0,.04)'}},
+            x:{ticks:{font:{size:10},maxRotation:30}}}}});
+    }
+    mkVBar('wl-osat-bar-'+cid,   stData.map(function(d){return d.osat!=null?Math.round(d.osat*10)/10:null;}),   90, function(v){return v.toFixed(1)+'%';},70);
+    mkVBar('wl-rating-bar-'+cid, stDataRating.map(function(d){return d.rating!=null?Math.round(d.rating*10)/10:null;}),4.3, function(v){return v.toFixed(1);},3);
+    mkVBar('wl-ms-bar-'+cid,     stData.map(function(d){return d.ms!=null?Math.round(d.ms*10)/10:null;}),        90, function(v){return v.toFixed(1)+'%';},50);
+    var COLORS=['#FF8200','#4F2C1D','#A8AD00','#F7D417','#5D2A2C','#0077CC'];
+    var trendDS=cl.stores.map(function(st,i){
+      var byWk=wlStoreWeeklyOsat(st);
+      return{label:st,
+        data:allWks.map(function(w){var d=byWk[w];return(d&&d.n>0)?Math.round(d.ss/d.n*1000)/10:null;}),
+        color:COLORS[i%COLORS.length]};
+    });
+    mkLine('wl-trend-'+cid,allWks,trendDS,function(v){return v!=null?v.toFixed(1)+'%':null;},90);
+  }
+};
+
+const WATCH_CLUSTERS=[
+  {name:'Orlando, FL',  id:'orlando',  stores:['St. Cloud','SODO','Landstar','Lake Pickett','Florida Mall','Vista Palms']},
+  {name:'Manhattan, NY',id:'manhattan',stores:['Herald Square','Penn Station','Midtown East']},
+  {name:'Santa Ana, CA',id:'santaana', stores:['Santa Ana','Bristol','Stanton','Bellflower','Anaheim','Garden Grove']}
+];
+function wlGetMonthRows(s,m){
+  return (DATA.store_monthly||[]).filter(function(r){
+    if(r.store_name!==s) return false;
+    if(m==null) return true;
+    if(m.length===4) return r.month.indexOf(m)===0;
+    return r.month===m;
   });
 }
+function wlGetWeekRows(s,w){
+  var byW={};
+  (DATA.store_channel_weekly||[]).filter(function(r){return r.store_name===s&&(w==null||r.week===w);})
+    .forEach(function(r){if(!byW[r.week])byW[r.week]={ss:0,n:0};byW[r.week].ss+=(r.osat/100)*r.n;byW[r.week].n+=r.n;});
+  return Object.values(byW).map(function(d){return{responses:d.n,osat:d.n>0?d.ss/d.n*100:null,reviews:0,evaluations:0,claims:0,rating:null,ms:null};});
+}
+function wlStoreMo(s,mo,wk){
+  var rows=wk?wlGetWeekRows(s,wk):wlGetMonthRows(s,mo);
+  if(!rows.length)return{osat:null,rating:null,ms:null,claims:null,responses:0};
+  return aggRows(rows)||{osat:null,rating:null,ms:null,claims:null,responses:0};
+}
+function wlAgg(stores,mo,wk){
+  var all=[];
+  stores.forEach(function(s){var r=wk?wlGetWeekRows(s,wk):wlGetMonthRows(s,mo);all=all.concat(r);});
+  return aggRows(all)||{osat:null,rating:null,ms:null,claims:null,responses:0};
+}
+function wlStoreWeeklyOsat(s){
+  var byW={};
+  (DATA.store_channel_weekly||[]).filter(function(r){return r.store_name===s;})
+    .forEach(function(r){if(!byW[r.week])byW[r.week]={ss:0,n:0};byW[r.week].ss+=(r.osat/100)*r.n;byW[r.week].n+=r.n;});
+  return byW;
+}
+function wlClusterWeeklyOsat(stores){
+  var byW={};
+  stores.forEach(function(s){
+    (DATA.store_channel_weekly||[]).filter(function(r){return r.store_name===s;})
+      .forEach(function(r){if(!byW[r.week])byW[r.week]={ss:0,n:0};byW[r.week].ss+=(r.osat/100)*r.n;byW[r.week].n+=r.n;});
+  });
+  return byW;
+}
+function wlClusterWeeklyMs(stores){
+  var byW={};
+  stores.forEach(function(s){
+    (DATA.store_cats_weekly||[]).filter(function(r){return r.store_name===s&&r.ms_overall!=null;})
+      .forEach(function(r){if(!byW[r.week])byW[r.week]={ss:0,n:0};byW[r.week].ss+=r.ms_overall;byW[r.week].n+=1;});
+  });
+  return byW;
+}
+function wlClusterMonthlyRating(stores){
+  var byM={};
+  stores.forEach(function(s){
+    (DATA.store_monthly||[]).filter(function(r){return r.store_name===s&&r.rating!=null&&r.reviews>0;})
+      .forEach(function(r){if(!byM[r.month])byM[r.month]={ss:0,n:0};byM[r.month].ss+=r.rating*(r.reviews||1);byM[r.month].n+=(r.reviews||1);});
+  });
+  return byM;
+}
+function dateToWeek(d){
+  var dt=new Date(d+'T12:00:00');
+  dt.setDate(dt.getDate()+3-(dt.getDay()+6)%7);
+  var w1=new Date(dt.getFullYear(),0,4);
+  var wn=1+Math.round(((dt.getTime()-w1.getTime())/86400000-3+(w1.getDay()+6)%7)/7);
+  return dt.getFullYear()+'-W'+String(wn).padStart(2,'0');
+}
+function wlStoreWeeklyRating(storeName){
+  var byW={};
+  var byStore=DATA.store_reviews_monthly[storeName];
+  if(!byStore) return byW;
+  Object.keys(byStore).forEach(function(mo){
+    var mo_data=byStore[mo];
+    ['positive','negative'].forEach(function(type){
+      (mo_data[type]||[]).forEach(function(rev){
+        if(!rev.d||!rev.r) return;
+        var wk=dateToWeek(rev.d);
+        if(!byW[wk])byW[wk]={ss:0,n:0};
+        byW[wk].ss+=rev.r; byW[wk].n+=1;
+      });
+    });
+  });
+  return byW;
+}
+function wlClusterWeeklyRating(stores){
+  var byW={};
+  stores.forEach(function(s){
+    var sw=wlStoreWeeklyRating(s);
+    Object.keys(sw).forEach(function(w){
+      if(!byW[w])byW[w]={ss:0,n:0};
+      byW[w].ss+=sw[w].ss; byW[w].n+=sw[w].n;
+    });
+  });
+  return byW;
+}
+function wlTrendCfg(labels,data,lineColor,fillColor,tickFmt,goal,yMin){
+  return{type:'line',
+    data:{labels:labels,datasets:[{label:'',data:data,
+      borderColor:lineColor,backgroundColor:fillColor,
+      borderWidth:2,pointRadius:3,pointBackgroundColor:lineColor,
+      tension:.35,fill:true,spanGaps:true}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},datalabels:{display:false},
+        annotation:{annotations:{goal:{type:'line',yMin:goal,yMax:goal,
+          borderColor:'rgba(0,0,0,0.15)',borderDash:[4,4],borderWidth:1.5}}}},
+      scales:{
+        y:{min:yMin,grid:{color:'rgba(0,0,0,0.05)'},
+          ticks:{callback:function(v){return tickFmt(v);},font:{size:10},color:'#999'}},
+        x:{grid:{display:false},
+          ticks:{font:{size:9},color:'#999',maxRotation:30}}}}};
+}
+
+fetch('cx_data.json')
+  .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+  .then(function(d){
+    DATA = d;
+    G    = DATA.meta.goals;
+    dash.init();
+  })
+  .catch(function(e){
+    document.body.innerHTML =
+      '<div style="padding:60px;text-align:center;color:#C62828;font-family:sans-serif;">' +
+      '<h2>Dashboard failed to load</h2><p style="margin-top:12px;color:#555">' + e + '</p>' +
+      '<p style="margin-top:8px;color:#888;font-size:13px">Make sure cx_data.json is in the same folder and run update.py first.</p>' +
+      '</div>';
+  });
 </script>
 </body>
 </html>
