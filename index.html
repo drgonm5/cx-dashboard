@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CX Dashboard — Pollo Campero USA</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<style>
+:root{
+  --brown:#4F2C1D;--orange:#FF8200;--lime:#A8AD00;--yellow:#F7D417;
+  --off:#F8F7F5;--dark:#1E1E1E;--muted:#7A7A72;
+  --green:#2E7D32;--red:#C62828;--green-bg:#E8F5E9;--red-bg:#FFEBEE;
+  --shadow:0 1px 4px rgba(0,0,0,.10);--r:8px;--g:14px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+     background:#F0EEEB;color:var(--dark);font-size:14px;line-height:1.5;}
+
+/* ── Header ── */
+.hdr{background:var(--brown);color:#fff;padding:10px 20px;display:flex;
+     align-items:center;gap:14px;flex-wrap:wrap;position:sticky;top:0;
+     z-index:200;box-shadow:0 2px 8px rgba(0,0,0,.3);}
+.hdr-logo{font-size:18px;font-weight:800;letter-spacing:.5px;color:var(--yellow);}
+.hdr-logo span{color:#fff;font-weight:400;}
+.hdr-sub{font-size:12px;color:rgba(255,255,255,.6);}
+.hdr-right{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.audience-toggle{display:flex;background:rgba(0,0,0,.25);border-radius:5px;overflow:hidden;}
+.aud-btn{padding:6px 14px;background:none;border:none;color:rgba(255,255,255,.65);
+         font-size:12px;font-weight:600;cursor:pointer;transition:.15s;letter-spacing:.3px;}
+.aud-btn.active{background:var(--orange);color:#fff;}
+.last-update{font-size:11px;color:rgba(255,255,255,.5);}
+.area-select{padding:5px 10px;background:rgba(255,255,255,.12);color:#fff;
+             border:1px solid rgba(255,255,255,.25);border-radius:4px;font-size:12px;
+             cursor:pointer;display:none;}
+.area-select option{background:var(--brown);color:#fff;}
+
+/* ── Layout ── */
+.main{padding:var(--g);max-width:1600px;margin:0 auto;}
+
+/* ── KPI Cards ── */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--g);margin-bottom:var(--g);}
+.kc{background:#fff;border-radius:var(--r);padding:16px 18px;box-shadow:var(--shadow);
+    border-top:3px solid #ccc;transition:transform .15s;}
+.kc:hover{transform:translateY(-1px);}
+.kc.ok{border-top-color:var(--green)}.kc.bad{border-top-color:var(--red)}.kc.na{border-top-color:#ccc;}
+.kc-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;}
+.kc-val{font-size:32px;font-weight:700;line-height:1;margin-bottom:6px;}
+.kc-val.ok{color:var(--green)}.kc-val.bad{color:var(--red)}.kc-val.na{color:var(--dark);}
+.kc-meta{display:flex;gap:8px;flex-wrap:wrap;font-size:12px;align-items:center;}
+.kc-goal{background:var(--off);border-radius:3px;padding:2px 7px;color:var(--muted);}
+.kc-badge{border-radius:3px;padding:2px 7px;font-weight:600;}
+.kc-badge.pos{background:var(--green-bg);color:var(--green);}
+.kc-badge.neg{background:var(--red-bg);color:var(--red);}
+.kc-n{color:var(--muted);}
+
+/* ── Trend Charts ── */
+.trend-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--g);margin-bottom:var(--g);}
+.chart-card{background:#fff;border-radius:var(--r);padding:16px 20px;box-shadow:var(--shadow);}
+.chart-title{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;
+             letter-spacing:.6px;margin-bottom:10px;}
+.chart-box{position:relative;height:160px;}
+
+/* ── Tables ── */
+.card{background:#fff;border-radius:var(--r);box-shadow:var(--shadow);margin-bottom:var(--g);overflow:hidden;}
+.card-hdr{padding:14px 20px;border-bottom:1px solid #F0EEEB;display:flex;
+          align-items:center;justify-content:space-between;gap:10px;}
+.card-hdr h3{font-size:13px;font-weight:700;}
+.card-hdr .tag{font-size:11px;background:var(--off);border-radius:3px;
+               padding:2px 8px;color:var(--muted);}
+.tbl-wrap{overflow-x:auto;}
+.dtbl{width:100%;border-collapse:collapse;font-size:13px;}
+.dtbl thead th{text-align:left;padding:9px 12px;border-bottom:2px solid #E5E3DF;
+               font-size:11px;color:var(--muted);text-transform:uppercase;
+               letter-spacing:.4px;cursor:pointer;white-space:nowrap;user-select:none;}
+.dtbl thead th:hover{color:var(--dark);}
+.dtbl thead th.sorted{color:var(--orange);}
+.dtbl tbody td{padding:9px 12px;border-bottom:1px solid #F0EEEB;vertical-align:middle;}
+.dtbl tbody tr:hover{background:#FAF9F7;}
+.pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;}
+.pill.ok{background:var(--green-bg);color:var(--green);}
+.pill.bad{background:var(--red-bg);color:var(--red);}
+.pill.na{background:var(--off);color:var(--muted);}
+.cmp{display:inline-block;padding:1px 5px;border-radius:3px;font-size:11px;font-weight:600;margin-left:4px;}
+.cmp.pos{color:var(--green);background:var(--green-bg);}
+.cmp.neg{color:var(--red);background:var(--red-bg);}
+
+/* ── Top/Bottom ── */
+.tb-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--g);margin-bottom:var(--g);}
+.tb-card{background:#fff;border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden;}
+.tb-hdr{padding:12px 16px;border-bottom:1px solid #F0EEEB;}
+.tb-hdr h4{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+.tb-hdr.top h4{color:var(--green);}
+.tb-hdr.bot h4{color:var(--red);}
+.tb-row{display:flex;align-items:center;gap:10px;padding:10px 16px;
+        border-bottom:1px solid #F0EEEB;}
+.tb-rank{width:24px;height:24px;border-radius:50%;font-size:11px;font-weight:700;
+         display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.tb-rank.top{background:var(--green-bg);color:var(--green);}
+.tb-rank.bot{background:var(--red-bg);color:var(--red);}
+.tb-info{flex:1;}
+.tb-name{font-size:13px;font-weight:600;}
+.tb-area{font-size:11px;color:var(--muted);}
+.tb-score{font-size:18px;font-weight:700;}
+.tb-score.top{color:var(--green);}
+.tb-score.bot{color:var(--red);}
+
+/* ── Region cards ── */
+.region-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--g);margin-bottom:var(--g);}
+.reg-card{background:#fff;border-radius:var(--r);box-shadow:var(--shadow);padding:16px 18px;
+          border-left:4px solid #ccc;}
+.reg-name{font-size:13px;font-weight:700;margin-bottom:10px;}
+.reg-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.reg-kpi{text-align:center;}
+.reg-kpi-val{font-size:18px;font-weight:700;line-height:1;}
+.reg-kpi-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;margin-top:2px;}
+
+/* ── Section headings ── */
+.section-title{font-size:12px;font-weight:700;text-transform:uppercase;
+               letter-spacing:.6px;color:var(--muted);margin-bottom:var(--g);
+               margin-top:4px;padding-left:2px;}
+
+/* ── Loading / Error ── */
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;
+         height:60vh;gap:16px;color:var(--muted);}
+.spinner{width:36px;height:36px;border:3px solid #E5E3DF;
+         border-top-color:var(--orange);border-radius:50%;
+         animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Search ── */
+.search-input{padding:6px 10px;border:1px solid #E5E3DF;border-radius:4px;
+              font-size:12px;width:200px;outline:none;}
+.search-input:focus{border-color:var(--orange);}
+
+/* ── Responsive ── */
+@media(max-width:900px){
+  .kpi-row{grid-template-columns:repeat(2,1fr);}
+  .trend-grid{grid-template-columns:1fr;}
+  .region-grid{grid-template-columns:1fr 1fr;}
+  .tb-grid{grid-template-columns:1fr;}
+}
+@media(max-width:600px){
+  .kpi-row{grid-template-columns:1fr 1fr;}
+  .region-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="hdr">
+  <div>
+    <div class="hdr-logo">Pollo Campero <span>CX Dashboard</span></div>
+    <div class="hdr-sub" id="hdr-sub">Loading…</div>
+  </div>
+  <div class="hdr-right">
+    <select class="area-select" id="area-select" onchange="renderAreaManager()">
+      <option value="">— Select Area —</option>
+    </select>
+    <div class="audience-toggle">
+      <button class="aud-btn active" onclick="setAudience('exec')">Executive</button>
+      <button class="aud-btn" onclick="setAudience('director')">Director</button>
+      <button class="aud-btn" onclick="setAudience('area')">Area Manager</button>
+    </div>
+    <div class="last-update" id="last-update"></div>
+  </div>
+</header>
+
+<!-- Main -->
+<div class="main" id="main">
+  <div class="loading">
+    <div class="spinner"></div>
+    <div>Loading dashboard data…</div>
+  </div>
+</div>
+
+<script>
+Chart.register(ChartDataLabels);
+
+// ── State ──────────────────────────────────────────────────────────────────────
+let DATA = null;
+let audience = 'exec';
+
+// Region colors
+const RC = {Central:"#E65100",Northeast:"#1B5E20","NY/NJ":"#0D47A1",
+            Southeast:"#6A1B9A",West:"#BF360C",Franchise:"#795548"};
+
+// ── Load data ──────────────────────────────────────────────────────────────────
+fetch('cx_data.json')
+  .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+  .then(d => {
+    DATA = d;
+    document.getElementById('last-update').textContent = 'Updated: ' + d.meta.generated;
+    document.getElementById('hdr-sub').textContent =
+      'Week ' + d.meta.last_week + '  ·  ' + d.meta.last_month;
+    populateAreaSelect();
+    render();
+  })
+  .catch(e => {
+    document.getElementById('main').innerHTML =
+      '<div class="loading"><div style="color:#C62828;font-size:16px">⚠ Could not load cx_data.json</div>' +
+      '<div style="color:var(--muted)">Run update.py to generate the data file.</div></div>';
+  });
+
+// ── Audience ───────────────────────────────────────────────────────────────────
+function setAudience(a) {
+  audience = a;
+  document.querySelectorAll('.aud-btn').forEach((b,i) => {
+    b.classList.toggle('active', ['exec','director','area'][i] === a);
+  });
+  const sel = document.getElementById('area-select');
+  sel.style.display = a === 'area' ? 'block' : 'none';
+  render();
+}
+
+function render() {
+  if (!DATA) return;
+  if (audience === 'exec')     renderExecutive();
+  else if (audience === 'director') renderDirector();
+  else renderAreaManager();
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────────
+const G = () => DATA.meta.goals;
+const fmt = (v,d=1) => v == null ? '—' : Number(v).toFixed(d);
+const fmtPct = v => v == null ? '—' : fmt(v) + '%';
+const fmtRating = v => v == null ? '—' : fmt(v,2) + '★';
+const fmtClaims = v => v == null ? '—' : v.toLocaleString();
+
+function kpiColor(kpi, val) {
+  if (val == null) return 'na';
+  const g = G();
+  if (kpi === 'osat') return val >= g.osat ? 'ok' : 'bad';
+  if (kpi === 'rating') return val >= g.rating ? 'ok' : 'bad';
+  if (kpi === 'ms') return val >= g.ms ? 'ok' : 'bad';
+  return 'na';
+}
+
+function kpiDiff(val, goal) {
+  if (val == null || goal == null) return '';
+  const d = (val - goal);
+  const cls = d >= 0 ? 'pos' : 'neg';
+  const sign = d >= 0 ? '+' : '';
+  return `<span class="cmp ${cls}">${sign}${fmt(d)} vs goal</span>`;
+}
+
+function kpiCard(label, val, fmtFn, kpi, goal, n, extra='') {
+  const cls = kpiColor(kpi, val);
+  const gStr = goal != null ? `<span class="kc-goal">Goal: ${fmtFn(goal)}</span>` : '';
+  const nStr = n != null ? `<span class="kc-n">${n.toLocaleString()} responses</span>` : '';
+  return `<div class="kc ${cls}">
+    <div class="kc-lbl">${label}</div>
+    <div class="kc-val ${cls}">${fmtFn(val)}</div>
+    <div class="kc-meta">${gStr}${kpiDiff(val,goal)}${extra}${nStr}</div>
+  </div>`;
+}
+
+function trendChart(canvasId, labels, data, color, isRating=false) {
+  const ctx = document.getElementById(canvasId);
+  if (!ctx) return;
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets:[{
+        data, borderColor: color, backgroundColor: color+'22',
+        borderWidth: 2, pointRadius: 2, pointHoverRadius: 4,
+        fill: true, tension: .35
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, datalabels:{display:false},
+                tooltip:{ callbacks:{ label: ctx => isRating ? fmt(ctx.raw,2)+'★' : fmt(ctx.raw)+'%' }}},
+      scales:{
+        x:{ grid:{display:false}, ticks:{font:{size:9}, maxTicksLimit:6,
+            callback:(v,i,arr)=>{ const l=labels[i]; return l ? l.replace(/\d{4}-/,'') : ''; }}},
+        y:{ grid:{color:'#F0EEEB'}, ticks:{font:{size:9},
+            callback: v => isRating ? fmt(v,1) : Math.round(v)+'%'}}
+      }
+    }
+  });
+}
+
+function buildTrendData(weekMap, monthMap, useMonthly) {
+  if (!DATA) return { labels: [], vals: [] };
+  if (useMonthly) {
+    const months = DATA.meta.all_months || [];
+    return {
+      labels: months,
+      vals:   months.map(m => monthMap ? monthMap[m] : null)
+    };
+  }
+  const weeks = DATA.meta.all_weeks || [];
+  return {
+    labels: weeks,
+    vals:   weeks.map(w => weekMap ? weekMap[w] : null)
+  };
+}
+
+function sortTable(rows, col, asc) {
+  return [...rows].sort((a,b) => {
+    const av = a[col], bv = b[col];
+    if (av == null && bv == null) return 0;
+    if (av == null) return 1;
+    if (bv == null) return -1;
+    return asc ? av - bv : bv - av;
+  });
+}
+
+function storeRow(sid, info) {
+  const o = info.osat?.ytd, r = info.rating?.ytd,
+        m = info.ms?.ytd,   c = info.claims?.ytd;
+  const oc = kpiColor('osat', o), rc = kpiColor('rating', r), mc = kpiColor('ms', m);
+  return `<tr>
+    <td><b>${info.name}</b><br><span style="font-size:11px;color:var(--muted)">${info.area||''}</span></td>
+    <td>${info.region||'—'}</td>
+    <td><span class="pill ${oc}">${fmtPct(o)}</span></td>
+    <td><span class="pill ${rc}">${fmtRating(r)}</span></td>
+    <td><span class="pill ${mc}">${fmtPct(m)}</span></td>
+    <td>${fmtClaims(c)}</td>
+  </tr>`;
+}
+
+let sortState = { col: null, asc: false };
+
+function makeStoreTable(storeEntries, tableId, showRegion=true) {
+  const headers = ['Store', showRegion ? 'Region' : 'Area', 'OSAT','Rating','Mystery Shopper','Claims'];
+  const ths = headers.map((h,i) => {
+    const key = ['name','region','osat','rating','ms','claims'][i];
+    const sorted = sortState.col === key;
+    return `<th class="${sorted?'sorted':''}" onclick="sortBy('${tableId}','${key}',${showRegion})">${h}${sorted?(sortState.asc?' ↑':' ↓'):''}</th>`;
+  }).join('');
+
+  const rows = storeEntries.map(([sid,info]) => ({
+    sid, info,
+    osat:   info.osat?.ytd,
+    rating: info.rating?.ytd,
+    ms:     info.ms?.ytd,
+    claims: info.claims?.ytd,
+    name:   info.name
+  }));
+
+  const sorted = sortState.col ?
+    sortTable(rows, sortState.col, sortState.asc) : rows;
+
+  const tbody = sorted.map(r => storeRow(r.sid, r.info)).join('');
+  return `<div class="tbl-wrap"><table class="dtbl" id="${tableId}">
+    <thead><tr>${ths}</tr></thead>
+    <tbody>${tbody}</tbody>
+  </table></div>`;
+}
+
+let _sortListeners = {};
+function sortBy(tableId, col, showRegion) {
+  if (sortState.col === col) sortState.asc = !sortState.asc;
+  else { sortState.col = col; sortState.asc = false; }
+  render();
+}
+
+function populateAreaSelect() {
+  const sel = document.getElementById('area-select');
+  (DATA.meta.all_areas || []).forEach(a => {
+    const opt = document.createElement('option');
+    opt.value = a; opt.textContent = a;
+    sel.appendChild(opt);
+  });
+}
+
+// ── Executive View ─────────────────────────────────────────────────────────────
+function renderExecutive() {
+  const n = DATA.national;
+  const g = G();
+  const weeks = DATA.meta.all_weeks || [];
+
+  // KPI cards
+  const cards = [
+    kpiCard('OSAT (Top 2 Box)', n.osat?.ytd,  fmtPct,   'osat',   g.osat,   n.osat?.n),
+    kpiCard('Rating (Avg ★)',   n.rating?.ytd, fmtRating,'rating', g.rating, n.rating?.n),
+    kpiCard('Mystery Shopper',  n.ms?.ytd,     fmtPct,   'ms',     g.ms,     n.ms?.n),
+    kpiCard('Claims (Atel)',    n.claims?.ytd, fmtClaims,'claims', null,     null,
+            `<span class="kc-n">${(n.claims?.ytd||0).toLocaleString()} total</span>`),
+  ].join('');
+
+  // Trend data
+  const osatW  = buildTrendData(n.osat?.weeks,   n.osat?.months,   false);
+  const ratingW = buildTrendData(n.rating?.weeks, n.rating?.months, false);
+  const msM    = buildTrendData(null,             n.ms?.months,     true);
+  const claimsW = buildTrendData(n.claims?.weeks, n.claims?.months, false);
+
+  // Top/Bottom stores
+  const top5 = (DATA.top5 || []).map((s,i) => `
+    <div class="tb-row">
+      <div class="tb-rank top">${i+1}</div>
+      <div class="tb-info"><div class="tb-name">${s.name}</div>
+        <div class="tb-area">${s.area||''}</div></div>
+      <div class="tb-score top">${fmtPct(s.osat)}</div>
+    </div>`).join('');
+
+  const bot5 = (DATA.bottom5 || []).slice().reverse().map((s,i) => `
+    <div class="tb-row">
+      <div class="tb-rank bot">${i+1}</div>
+      <div class="tb-info"><div class="tb-name">${s.name}</div>
+        <div class="tb-area">${s.area||''}</div></div>
+      <div class="tb-score bot">${fmtPct(s.osat)}</div>
+    </div>`).join('');
+
+  document.getElementById('main').innerHTML = `
+    <div class="kpi-row">${cards}</div>
+
+    <p class="section-title">13-Week Trends (National)</p>
+    <div class="trend-grid">
+      <div class="chart-card">
+        <div class="chart-title">OSAT — Top 2 Box %</div>
+        <div class="chart-box"><canvas id="tc-osat"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Rating — Avg Stars</div>
+        <div class="chart-box"><canvas id="tc-rating"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Mystery Shopper — Monthly Score %</div>
+        <div class="chart-box"><canvas id="tc-ms"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Claims (Atel) — Count</div>
+        <div class="chart-box"><canvas id="tc-claims"></canvas></div>
+      </div>
+    </div>
+
+    <p class="section-title">Store Rankings — OSAT YTD (min. 30 responses)</p>
+    <div class="tb-grid">
+      <div class="tb-card">
+        <div class="tb-hdr top"><h4>Top 5 Stores</h4></div>
+        ${top5 || '<div style="padding:16px;color:var(--muted)">No data</div>'}
+      </div>
+      <div class="tb-card">
+        <div class="tb-hdr bot"><h4>Bottom 5 Stores</h4></div>
+        ${bot5 || '<div style="padding:16px;color:var(--muted)">No data</div>'}
+      </div>
+    </div>
+  `;
+
+  // Draw charts
+  const last13 = (arr, vals) => {
+    const n = arr.length;
+    const s = Math.max(0, n-13);
+    return { labels: arr.slice(s), vals: vals.slice(s) };
+  };
+
+  const o13 = last13(osatW.labels, osatW.vals);
+  trendChart('tc-osat', o13.labels, o13.vals, '#FF8200');
+
+  const r13 = last13(ratingW.labels, ratingW.vals);
+  trendChart('tc-rating', r13.labels, r13.vals, '#4F2C1D', true);
+
+  trendChart('tc-ms', msM.labels, msM.vals, '#A8AD00');
+
+  const c13 = last13(claimsW.labels, claimsW.vals);
+  const claimsCtx = document.getElementById('tc-claims');
+  if (claimsCtx) new Chart(claimsCtx, {
+    type: 'bar',
+    data:{ labels: c13.labels, datasets:[{
+      data: c13.vals, backgroundColor:'#FF820055', borderColor:'#FF8200', borderWidth:1
+    }]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, datalabels:{display:false}},
+      scales:{
+        x:{ grid:{display:false}, ticks:{font:{size:9}, maxTicksLimit:8,
+            callback:(v,i)=>{ const l=c13.labels[i]; return l?l.replace(/\d{4}-/,''):''; }}},
+        y:{ grid:{color:'#F0EEEB'}, ticks:{font:{size:9}}}
+      }
+    }
+  });
+}
+
+// ── Director View ──────────────────────────────────────────────────────────────
+function renderDirector() {
+  const n = DATA.national;
+  const g = G();
+  const regions = DATA.regions || {};
+
+  const cards = [
+    kpiCard('OSAT (Top 2 Box)', n.osat?.ytd,  fmtPct,   'osat',   g.osat,   n.osat?.n),
+    kpiCard('Rating (Avg ★)',   n.rating?.ytd, fmtRating,'rating', g.rating, n.rating?.n),
+    kpiCard('Mystery Shopper',  n.ms?.ytd,     fmtPct,   'ms',     g.ms,     n.ms?.n),
+    kpiCard('Claims (Atel)',    n.claims?.ytd, fmtClaims,'claims', null,     null),
+  ].join('');
+
+  // Region cards
+  const regCards = (DATA.meta.all_regions || []).map(reg => {
+    const r = regions[reg] || {};
+    const oc = kpiColor('osat',   r.osat?.ytd);
+    const rc = kpiColor('rating', r.rating?.ytd);
+    const mc = kpiColor('ms',     r.ms?.ytd);
+    const col = RC[reg] || '#888';
+    return `<div class="reg-card" style="border-left-color:${col}">
+      <div class="reg-name" style="color:${col}">${reg}</div>
+      <div class="reg-kpis">
+        <div class="reg-kpi">
+          <div class="reg-kpi-val" style="color:${oc==='ok'?'var(--green)':oc==='bad'?'var(--red)':'#999'}">${fmtPct(r.osat?.ytd)}</div>
+          <div class="reg-kpi-lbl">OSAT</div>
+        </div>
+        <div class="reg-kpi">
+          <div class="reg-kpi-val" style="color:${rc==='ok'?'var(--green)':rc==='bad'?'var(--red)':'#999'}">${fmtRating(r.rating?.ytd)}</div>
+          <div class="reg-kpi-lbl">Rating</div>
+        </div>
+        <div class="reg-kpi">
+          <div class="reg-kpi-val" style="color:${mc==='ok'?'var(--green)':mc==='bad'?'var(--red)':'#999'}">${fmtPct(r.ms?.ytd)}</div>
+          <div class="reg-kpi-lbl">MS</div>
+        </div>
+        <div class="reg-kpi">
+          <div class="reg-kpi-val">${fmtClaims(r.claims?.ytd)}</div>
+          <div class="reg-kpi-lbl">Claims</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // All stores table
+  const storeEntries = Object.entries(DATA.stores || {})
+    .filter(([,d]) => d.osat?.ytd != null || d.rating?.ytd != null);
+  const storeTable = makeStoreTable(storeEntries, 'dir-store-tbl', true);
+
+  // Search
+  const searchBar = `<input class="search-input" id="store-search" placeholder="Search stores…" oninput="filterStoreTable()">`;
+
+  document.getElementById('main').innerHTML = `
+    <div class="kpi-row">${cards}</div>
+
+    <p class="section-title">By Region</p>
+    <div class="region-grid">${regCards}</div>
+
+    <div class="card">
+      <div class="card-hdr">
+        <h3>All Stores</h3>
+        <div style="display:flex;gap:8px;align-items:center">
+          ${searchBar}
+          <span class="tag">${storeEntries.length} stores</span>
+        </div>
+      </div>
+      ${storeTable}
+    </div>
+  `;
+}
+
+function filterStoreTable() {
+  const q = (document.getElementById('store-search')?.value || '').toLowerCase();
+  document.querySelectorAll('#dir-store-tbl tbody tr').forEach(tr => {
+    tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+
+// ── Area Manager View ──────────────────────────────────────────────────────────
+function renderAreaManager() {
+  const selVal = document.getElementById('area-select')?.value;
+  if (!selVal) {
+    document.getElementById('main').innerHTML = `
+      <div class="loading" style="height:40vh">
+        <div style="font-size:28px">👆</div>
+        <div style="color:var(--muted)">Select your area from the dropdown above</div>
+      </div>`;
+    return;
+  }
+
+  const areaData = (DATA.areas || {})[selVal] || {};
+  const g = G();
+
+  const cards = [
+    kpiCard('OSAT (Top 2 Box)', areaData.osat?.ytd,   fmtPct,   'osat',   g.osat,   areaData.osat?.n),
+    kpiCard('Rating (Avg ★)',   areaData.rating?.ytd,  fmtRating,'rating', g.rating, areaData.rating?.n),
+    kpiCard('Mystery Shopper',  areaData.ms?.ytd,      fmtPct,   'ms',     g.ms,     areaData.ms?.n),
+    kpiCard('Claims (Atel)',    areaData.claims?.ytd,  fmtClaims,'claims', null,     null),
+  ].join('');
+
+  // Stores for this area
+  const storeEntries = Object.entries(DATA.stores || {})
+    .filter(([,d]) => d.area === selVal);
+
+  const storeTable = makeStoreTable(storeEntries, 'am-store-tbl', false);
+
+  // Monthly trend
+  const osatM  = buildTrendData(areaData.osat?.weeks, areaData.osat?.months, true);
+  const ratingM = buildTrendData(areaData.rating?.weeks, areaData.rating?.months, true);
+  const msM    = buildTrendData(null, areaData.ms?.months, true);
+
+  document.getElementById('main').innerHTML = `
+    <div style="margin-bottom:10px">
+      <span style="font-size:13px;font-weight:700">${selVal}</span>
+      <span style="margin-left:8px;font-size:12px;color:var(--muted)">
+        ${areaData.region||''} · Manager: ${areaData.manager||''}
+      </span>
+    </div>
+    <div class="kpi-row">${cards}</div>
+
+    <p class="section-title">Monthly Trends</p>
+    <div class="trend-grid">
+      <div class="chart-card">
+        <div class="chart-title">OSAT %</div>
+        <div class="chart-box"><canvas id="am-osat"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Rating ★</div>
+        <div class="chart-box"><canvas id="am-rating"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Mystery Shopper %</div>
+        <div class="chart-box"><canvas id="am-ms"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Claims Count (monthly)</div>
+        <div class="chart-box"><canvas id="am-claims"></canvas></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-hdr">
+        <h3>Stores in ${selVal}</h3>
+        <span class="tag">${storeEntries.length} stores</span>
+      </div>
+      ${storeTable}
+    </div>
+  `;
+
+  trendChart('am-osat',   osatM.labels,  osatM.vals,  '#FF8200');
+  trendChart('am-rating', ratingM.labels, ratingM.vals,'#4F2C1D', true);
+  trendChart('am-ms',     msM.labels,    msM.vals,    '#A8AD00');
+
+  const claimsM = buildTrendData(areaData.claims?.weeks, areaData.claims?.months, true);
+  const claimsCtx = document.getElementById('am-claims');
+  if (claimsCtx) new Chart(claimsCtx, {
+    type:'bar',
+    data:{labels:claimsM.labels, datasets:[{
+      data:claimsM.vals, backgroundColor:'#FF820055', borderColor:'#FF8200', borderWidth:1
+    }]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}, datalabels:{display:false}},
+      scales:{
+        x:{grid:{display:false},ticks:{font:{size:9}}},
+        y:{grid:{color:'#F0EEEB'},ticks:{font:{size:9}}}
+      }
+    }
+  });
+}
+</script>
+</body>
+</html>
